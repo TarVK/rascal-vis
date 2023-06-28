@@ -158,7 +158,10 @@ export class LayoutState {
                 return {
                     ...data,
                     tabs: newTabs,
-                    selected: newTabs[Math.max(0, Math.min(index, newTabs.length - 1))],
+                    selected:
+                        selected != tabId
+                            ? selected
+                            : newTabs[Math.max(0, Math.min(index, newTabs.length - 1))],
                 };
             }
         );

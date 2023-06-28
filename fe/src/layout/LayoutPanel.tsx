@@ -72,10 +72,11 @@ export const LayoutTabsPanel: FC<{
         .filter((v): v is IContent => v != undefined);
     const selectedContent = orderedContents.find(({id}) => panel.selected == id);
 
-    const tabData = orderedContents.map<ITabData>(({id, name}) => ({
+    const tabData = orderedContents.map<ITabData>(({id, name, forceOpen}) => ({
         name,
         id,
         selected: id == panel.selected,
+        forceOpen: forceOpen ?? false,
     }));
 
     const onDropTab = (beforeId: string) => {
@@ -86,6 +87,7 @@ export const LayoutTabsPanel: FC<{
         if (dragging.removeFromPanelId)
             state.closeTab(dragging.removeFromPanelId, dragging.targetId);
         state.openTab(panel.id, dragging.targetId, beforeId);
+        state.selectTab(panel.id, dragging.targetId);
     };
 
     const onDropSide = (side: IDropPanelSide) => {
@@ -98,6 +100,7 @@ export const LayoutTabsPanel: FC<{
             if (dragging.removeFromPanelId)
                 state.closeTab(dragging.removeFromPanelId, dragging.targetId);
             state.openTab(panel.id, dragging.targetId);
+            state.selectTab(panel.id, dragging.targetId);
             return;
         }
 

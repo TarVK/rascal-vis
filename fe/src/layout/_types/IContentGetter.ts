@@ -11,4 +11,9 @@ export type IContentGetter = (id: string, hook?: IDataHook) => IContent | null;
 /**
  * The content to be displayed in the tab
  */
-export type IContent = {name: string; id: string; content: JSX.Element};
+export type IContent = {
+    name: string;
+    id: string;
+    content: JSX.Element;
+    forceOpen?: boolean;
+};

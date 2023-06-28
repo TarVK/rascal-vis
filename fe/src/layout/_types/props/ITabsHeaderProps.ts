@@ -20,4 +20,5 @@ export type IDragStart = (data: IDragDataInput) => void;
 export type ITabData = {
     name: string;
     id: string;
+    forceOpen: boolean;
 };

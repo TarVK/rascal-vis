@@ -13,13 +13,17 @@ import {
     PivotItem,
     getTheme,
     mergeStyles,
+    useTheme,
 } from "@fluentui/react";
+import {css} from "@emotion/css";
 import {useDragStart} from "../../utils/useDragStart";
 import {LayoutState} from "../LayoutState";
 import {IPoint} from "../../utils/_types/IPoint";
 import {Field, useDataHook} from "model-react";
 
-export const TabsHeader: FC<ITabsHeaderProps> = ({
+export const TabsHeader: FC<
+    ITabsHeaderProps & {ExtraHeader?: FC<{onClose: () => void}>}
+> = ({
     onClose,
     tabs,
     dragging,
@@ -28,14 +32,25 @@ export const TabsHeader: FC<ITabsHeaderProps> = ({
     onSelectTab,
     selectedTab,
     onDragStart,
+    ExtraHeader,
 }) => {
     const OverflowAndRemainder = useMemo(
-        () => getOverflowAndRemainder(dragging, onDrop, tabs.length == 0),
-        [dragging, tabs.length == 0]
+        () =>
+            getOverflowAndRemainder(
+                dragging,
+                onDrop,
+                tabs.length == 0,
+                onClose,
+                ExtraHeader
+            ),
+        [dragging, tabs.length == 0, ExtraHeader]
     );
+    const theme = useTheme();
 
     return (
-        <div className={`layout-tabs-header ${pivotStyle}`} style={{display: "flex"}}>
+        <div
+            className={`layout-tabs-header ${pivotStyle}`}
+            style={{display: "flex", backgroundColor: theme.palette.neutralLighter}}>
             <Pivot
                 style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}
                 focusZoneProps={{style: {display: "flex", minHeight: 44}}}
@@ -47,7 +62,7 @@ export const TabsHeader: FC<ITabsHeaderProps> = ({
                 onLinkClick={item =>
                     item?.props.itemKey && onSelectTab(item.props.itemKey)
                 }>
-                {tabs.map(({id, name}, i) => (
+                {tabs.map(({id, name, forceOpen}, i) => (
                     <PivotItem
                         key={id}
                         headerText={name}
@@ -57,6 +72,7 @@ export const TabsHeader: FC<ITabsHeaderProps> = ({
                                 first={i == 0}
                                 name={name}
                                 dragging={dragging}
+                                forceOpen={forceOpen}
                                 onDrop={side =>
                                     onDrop(tabs[i + (side == "after" ? 1 : 0)]?.id)
                                 }
@@ -80,8 +96,10 @@ const pivotStyle = mergeStyles({
 const getOverflowAndRemainder: (
     dragging: boolean,
     onDrop: () => void,
-    empty: boolean
-) => FC<IButtonProps> = (dragging, onDrop, empty) => props =>
+    empty: boolean,
+    onClose: () => void,
+    ExtraHeader?: FC<{onClose: () => void}>
+) => FC<IButtonProps> = (dragging, onDrop, empty, onClose, ExtraHeader) => props =>
     (
         <>
             <div style={{flexGrow: 1, position: "relative"}}>
@@ -95,7 +113,8 @@ const getOverflowAndRemainder: (
                     />
                 )}
             </div>
-            <CommandButton {...props} />
+            <CommandButton {...props} menuIconProps={{iconName: "ChevronDown"}} />
+            {ExtraHeader && <ExtraHeader onClose={onClose} />}
         </>
     );
 
@@ -106,15 +125,17 @@ export const Tab: FC<{
     selected: boolean;
     onDrag: (input: Omit<IDragDataInput, "targetId">) => void;
     dragging: boolean;
+    forceOpen: boolean;
     onDrop: (side: "before" | "after") => void;
 }> = props => {
-    const {onClose, name, selected, onDrag, dragging, onDrop, first} = props;
+    const {onClose, name, selected, onDrag, dragging, onDrop, first, forceOpen} = props;
+    const theme = useTheme();
     const ref = useDragStart((position, offset) => {
         onDrag({
             position,
             offset,
             preview: (
-                <Pivot headersOnly style={{backgroundColor: theme.palette.neutralLight}}>
+                <Pivot headersOnly style={{backgroundColor: theme.palette.white}}>
                     <PivotItem onRenderItemLink={() => <Tab {...props} />} />
                 </Pivot>
             ),
@@ -124,7 +145,7 @@ export const Tab: FC<{
     return (
         <>
             {name}
-            {selected && (
+            {selected && !forceOpen && (
                 <>
                     <span style={{display: "inline-block", width: 20}} />
                     <div style={{position: "absolute", zIndex: 100, top: 5, right: 0}}>
@@ -167,34 +188,35 @@ export const Tab: FC<{
     );
 };
 
-// Drop target styling
 const dropWidth = 4;
 const dropOffset = 2;
-const theme = getTheme();
-const dropColor = theme.palette.themePrimary;
+
+// Drop target styling
 const DropContainer: FC<{style: CSSProperties; onDrop: () => void}> = ({
     style,
     onDrop,
-}) => (
-    <div
-        className={hoverDropStyle}
-        style={{
-            zIndex: 100,
-            position: "absolute",
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            borderColor: dropColor,
-            ...style,
-        }}
-        onMouseUp={onDrop}
-    />
-);
-const hoverDropStyle = mergeStyles({
-    borderWidth: 0,
-    borderStyle: "none",
-    "&:hover": {
-        borderStyle: "solid",
-    },
-});
+}) => {
+    const theme = useTheme();
+    const dropColor = theme.palette.themePrimary;
+    return (
+        <div
+            className={css({
+                borderWidth: 0,
+                borderStyle: "none",
+                "&:hover": {
+                    borderStyle: "solid",
+                },
+
+                zIndex: 100,
+                position: "absolute",
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                borderColor: dropColor,
+                ...style,
+            })}
+            onMouseUp={onDrop}
+        />
+    );
+};

@@ -1,50 +1,50 @@
 import React, {FC} from "react";
 import {IDropAreaProps} from "../_types/props/IDropAreaProps";
-import {getTheme, mergeStyles} from "@fluentui/react";
+import {getTheme, mergeStyles, useTheme} from "@fluentui/react";
 import {IDropPanelSide} from "../_types/IDropSide";
+import {css} from "@emotion/css";
 
-export const DropArea: FC<IDropAreaProps> = ({dragging, onDrop}) => (
-    <>
-        {dragging && (
-            <div
-                className={hoverStyle}
-                style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 42,
-                    right: 0,
-                    bottom: 0,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}>
-                <Diagonals
-                    size={200}
-                    innerSize={75}
-                    spacing={10}
-                    diagonalSpacing={10}
-                    onDrop={onDrop}
-                />
-            </div>
-        )}
-    </>
-);
+export const DropArea: FC<IDropAreaProps> = ({dragging, onDrop}) => {
+    const theme = useTheme();
+    const dropAreaColor = theme.palette.themeTertiary;
+    const dropColor = theme.palette.themePrimary;
+    return (
+        <>
+            {dragging && (
+                <div
+                    className={css({
+                        "& .drop": {backgroundColor: dropAreaColor},
+                        position: "absolute",
+                        left: 0,
+                        top: 42,
+                        right: 0,
+                        bottom: 0,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        opacity: 0,
+                        "&:hover": {
+                            opacity: 1,
+                        },
 
-const theme = getTheme();
-const dropAreaColor = theme.palette.themeTertiary;
-const dropColor = theme.palette.themePrimary;
-const hoverStyle = mergeStyles({
-    "& .drop": {backgroundColor: dropAreaColor},
-    "& .drop:hover": {backgroundColor: dropColor},
-    opacity: 0,
-    "&:hover": {
-        opacity: 1,
-    },
-    ".background": {
-        opacity: 0.7,
-        backgroundColor: theme.palette.neutralLight,
-    },
-});
+                        "& .drop:hover": {backgroundColor: dropColor},
+                        ".background": {
+                            opacity: 0.7,
+                            backgroundColor: theme.palette.white,
+                        },
+                    })}>
+                    <Diagonals
+                        size={200}
+                        innerSize={75}
+                        spacing={10}
+                        diagonalSpacing={10}
+                        onDrop={onDrop}
+                    />
+                </div>
+            )}
+        </>
+    );
+};
 
 const DiagonalCorner: FC<{angle: number; inset: number; onDrop: () => void}> = ({
     angle,

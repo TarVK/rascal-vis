@@ -22,6 +22,7 @@
         "@devtools-ds/console": "^1.2.1",
         "@devtools-ds/themes": "^1.2.1",
         "@devtools-ds/tree": "^1.2.1",
+        "@emotion/css": "^11.11.2",
         "@fluentui/react": "^8.110.5",
         "@fluentui/react-hooks": "^8.6.14",
         "@fluentui/react-theme-provider": "^0.18.5",

@@ -13,6 +13,7 @@ import {DefaultLayout} from "./layout/DefaultLayout";
 const layoutState = new LayoutState(id => ({
     id,
     name: id,
+    forceOpen: Number(id) % 2 == 0,
     content: <div style={{padding: 20}}>Content for: {id}</div>,
 }));
 
