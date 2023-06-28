@@ -13,7 +13,7 @@ import {DefaultLayout} from "./layout/DefaultLayout";
 const layoutState = new LayoutState(id => ({
     id,
     name: id,
-    content: <div>{id}</div>,
+    content: <div style={{padding: 20}}>Content for: {id}</div>,
 }));
 
 export const App: FC = () => {

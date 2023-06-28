@@ -37,7 +37,7 @@ export const TabsHeader: FC<ITabsHeaderProps> = ({
     return (
         <div className={`layout-tabs-header ${pivotStyle}`} style={{display: "flex"}}>
             <Pivot
-                style={{flexGrow: 1}}
+                style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}
                 focusZoneProps={{style: {display: "flex", minHeight: 44}}}
                 overflowBehavior="menu"
                 overflowAriaLabel="more items"
@@ -171,7 +171,7 @@ export const Tab: FC<{
 const dropWidth = 4;
 const dropOffset = 2;
 const theme = getTheme();
-const dropColor = theme.palette.neutralTertiary;
+const dropColor = theme.palette.themePrimary;
 const DropContainer: FC<{style: CSSProperties; onDrop: () => void}> = ({
     style,
     onDrop,

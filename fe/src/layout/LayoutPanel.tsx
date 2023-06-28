@@ -1,4 +1,4 @@
-import React, {FC, useRef} from "react";
+import React, {FC, useRef, useMemo} from "react";
 import {LayoutState} from "./LayoutState";
 import {IPanelData, IPanelSplitData, IPanelTabsData} from "./_types/IPanelData";
 import {
@@ -13,6 +13,10 @@ import {ILayoutComponents} from "./_types/ILayourComponents";
 import {useDataHook} from "model-react";
 import {IContent} from "./_types/IContentGetter";
 import {ITabData} from "./_types/props/ITabsHeaderProps";
+import {DropArea} from "./styledComponents/DropArea";
+import {IDropPanelSide} from "./_types/IDropSide";
+import {v4 as uuid} from "uuid";
+import {usePersistentMemo} from "../utils/usePersistentMemo";
 
 /**
  * The component for rendering a layout panel
@@ -31,26 +35,30 @@ export const LayoutSplitPanel: FC<{
     state: LayoutState;
     panel: IPanelSplitState;
     components: ILayoutComponents;
-}> = ({state, panel, components}) => (
-    <PanelGroup direction={panel.direction} ref={panel.handle}>
-        {intersperseDynamic(
-            panel.panels.map(panel => (
-                <Panel key={panel.content.id} defaultSize={panel.defaultWeight}>
-                    <LayoutPanel
-                        state={state}
-                        panel={panel.content}
-                        components={components}
-                    />
-                </Panel>
-            )),
-            i => (
-                <PanelResizeHandle key={i}>
-                    <components.ResizeHandle direction={panel.direction} />
-                </PanelResizeHandle>
-            )
-        )}
-    </PanelGroup>
-);
+}> = ({state, panel, components}) => {
+    const [h] = useDataHook();
+    const key = usePersistentMemo(uuid, [state.getLayoutState(h)]);
+    return (
+        <PanelGroup direction={panel.direction} ref={panel.handle} key={key}>
+            {intersperseDynamic(
+                panel.panels.map(panel => (
+                    <Panel key={panel.content.id} defaultSize={panel.defaultWeight}>
+                        <LayoutPanel
+                            state={state}
+                            panel={panel.content}
+                            components={components}
+                        />
+                    </Panel>
+                )),
+                i => (
+                    <PanelResizeHandle key={panel.panels[i].content.id + "-sep"}>
+                        <components.ResizeHandle direction={panel.direction} />
+                    </PanelResizeHandle>
+                )
+            )}
+        </PanelGroup>
+    );
+};
 
 export const LayoutTabsPanel: FC<{
     state: LayoutState;
@@ -70,6 +78,38 @@ export const LayoutTabsPanel: FC<{
         selected: id == panel.selected,
     }));
 
+    const onDropTab = (beforeId: string) => {
+        const dragging = state.getDraggingData();
+        if (!dragging?.targetId) return;
+        if (dragging.targetId == beforeId && dragging.removeFromPanelId == panel.id)
+            return; // Nothing should change
+        if (dragging.removeFromPanelId)
+            state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+        state.openTab(panel.id, dragging.targetId, beforeId);
+    };
+
+    const onDropSide = (side: IDropPanelSide) => {
+        const dragging = state.getDraggingData();
+        if (!dragging?.targetId) return;
+
+        // Insert in this tab
+        if (side == "in") {
+            if (dragging.removeFromPanelId == panel.id) return; // Nothing should change
+            if (dragging.removeFromPanelId)
+                state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+            state.openTab(panel.id, dragging.targetId);
+            return;
+        }
+
+        // Or add a new panel
+        const targetPanelId = state.addPanel(panel.id, side);
+        if (targetPanelId) {
+            if (dragging.removeFromPanelId)
+                state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+            state.openTab(targetPanelId, dragging.targetId);
+        }
+    };
+
     return (
         <components.TabsContainer>
             <components.TabsHeader
@@ -86,21 +126,11 @@ export const LayoutTabsPanel: FC<{
                 }
                 selectedTab={selectedContent?.id}
                 dragging={isDragging}
-                onDrop={beforeId => {
-                    const dragging = state.getDraggingData();
-                    if (!dragging?.targetId) return;
-                    if (
-                        dragging.targetId == beforeId &&
-                        dragging.removeFromPanelId == panel.id
-                    )
-                        return; // Nothing should change
-                    if (dragging.removeFromPanelId)
-                        state.closeTab(dragging.removeFromPanelId, dragging.targetId);
-                    state.openTab(panel.id, dragging.targetId, beforeId);
-                }}
+                onDrop={onDropTab}
                 state={state}
             />
             <components.TabsContent content={selectedContent?.content} />
+            <components.DropArea dragging={isDragging} onDrop={onDropSide} />
         </components.TabsContainer>
     );
 };

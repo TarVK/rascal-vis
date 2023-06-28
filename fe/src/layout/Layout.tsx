@@ -8,6 +8,8 @@ import {useDataHook} from "model-react";
  */
 export const Layout: FC<ILayoutProps> = ({state, components}) => {
     const [h] = useDataHook();
+    console.log(state.getLayoutState(h));
+
     return (
         <div className="layout-root" style={{height: "100%"}}>
             <LayoutPanel

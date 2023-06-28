@@ -7,8 +7,10 @@ export const TabsContainer: FC<ITabsContainerProps> = ({children}) => (
         style={{
             height: "100%",
             display: "flex",
+            position: "relative",
             flexDirection: "column",
             border: "1px solid black",
+            boxSizing: "border-box",
         }}>
         {children}
     </div>

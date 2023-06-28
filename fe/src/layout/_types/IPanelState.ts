@@ -9,10 +9,11 @@ export type IPanelSplitState = {
     id: string;
     direction: "horizontal" | "vertical";
     handle: React.RefObject<ImperativePanelGroupHandle>;
-    panels: {
-        defaultWeight: number;
-        content: IPanelState;
-    }[];
+    panels: IPanelSplitStatePanel[];
+};
+export type IPanelSplitStatePanel = {
+    defaultWeight: number;
+    content: IPanelState;
 };
 
 /** The type for rendering content, used to render the layout */
@@ -20,5 +21,5 @@ export type IPanelTabsState = {
     type: "tabs";
     id: string;
     tabs: string[];
-    selected: string;
+    selected?: string;
 };

@@ -1,1 +1,2 @@
-export type IDropPanelSide = "north" | "south" | "east" | "west" | "in";
+export type IDropPanelSide = IDropPanelSplitSide | "in";
+export type IDropPanelSplitSide = "north" | "south" | "east" | "west";

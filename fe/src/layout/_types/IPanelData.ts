@@ -17,5 +17,5 @@ export type IPanelTabsData = {
     type: "tabs";
     id: string;
     tabs: string[];
-    selected: string;
+    selected?: string;
 };
