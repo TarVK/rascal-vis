@@ -11,7 +11,7 @@ import {intersperse, intersperseDynamic} from "../utils/intersperse";
 import {IPanelSplitState, IPanelState, IPanelTabsState} from "./_types/IPanelState";
 import {ILayoutComponents} from "./_types/ILayourComponents";
 import {useDataHook} from "model-react";
-import {IContent} from "./_types/IContentGetter";
+import {IContent, IContentGetter} from "./_types/IContentGetter";
 import {ITabData} from "./_types/props/ITabsHeaderProps";
 import {DropArea} from "./styledComponents/DropArea";
 import {IDropPanelSide} from "./_types/IDropSide";
@@ -24,18 +24,20 @@ import {usePersistentMemo} from "../utils/usePersistentMemo";
 export const LayoutPanel: FC<{
     state: LayoutState;
     panel: IPanelState;
+    getContent: IContentGetter;
     components: ILayoutComponents;
-}> = ({state, panel, components}) => {
-    if (panel.type == "split")
-        return <LayoutSplitPanel state={state} panel={panel} components={components} />;
-    return <LayoutTabsPanel state={state} panel={panel} components={components} />;
+}> = props => {
+    if (props.panel.type == "split")
+        return <LayoutSplitPanel {...props} panel={props.panel} />;
+    return <LayoutTabsPanel {...props} panel={props.panel} />;
 };
 
 export const LayoutSplitPanel: FC<{
     state: LayoutState;
     panel: IPanelSplitState;
+    getContent: IContentGetter;
     components: ILayoutComponents;
-}> = ({state, panel, components}) => {
+}> = ({state, panel, components, getContent}) => {
     const [h] = useDataHook();
     const key = usePersistentMemo(uuid, [state.getLayoutState(h)]);
     return (
@@ -47,6 +49,7 @@ export const LayoutSplitPanel: FC<{
                             state={state}
                             panel={panel.content}
                             components={components}
+                            getContent={getContent}
                         />
                     </Panel>
                 )),
@@ -63,12 +66,13 @@ export const LayoutSplitPanel: FC<{
 export const LayoutTabsPanel: FC<{
     state: LayoutState;
     panel: IPanelTabsState;
+    getContent: IContentGetter;
     components: ILayoutComponents;
-}> = ({state, panel, components}) => {
+}> = ({state, panel, getContent, components}) => {
     const [h] = useDataHook();
     const isDragging = !!state.getDraggingData(h);
     const orderedContents = panel.tabs
-        .map(id => state.getContent(id, h))
+        .map(id => getContent(id, h))
         .filter((v): v is IContent => v != undefined);
     const selectedContent = orderedContents.find(({id}) => panel.selected == id);
 

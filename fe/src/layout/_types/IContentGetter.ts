@@ -6,7 +6,7 @@ import {IDataHook} from "model-react";
  * @param hook The data hook to subscribe to changes
  * @returns The tab content
  */
-export type IContentGetter = (id: string, hook?: IDataHook) => IContent | null;
+export type IContentGetter = (id: string, hook: IDataHook) => IContent | null;
 
 /**
  * The content to be displayed in the tab

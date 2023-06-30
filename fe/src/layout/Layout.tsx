@@ -6,7 +6,7 @@ import {useDataHook} from "model-react";
 /**
  * The layout entry component, where styling components still have to be provided
  */
-export const Layout: FC<ILayoutProps> = ({state, components}) => {
+export const Layout: FC<ILayoutProps> = ({state, components, getContent}) => {
     const [h] = useDataHook();
     console.log(state.getLayoutState(h));
 
@@ -16,6 +16,7 @@ export const Layout: FC<ILayoutProps> = ({state, components}) => {
                 state={state}
                 components={components}
                 panel={state.getLayoutState(h)}
+                getContent={getContent}
             />
             <components.DragPreview data={state.getDraggingData(h)} state={state} />
         </div>

@@ -14,10 +14,11 @@ import {DragPreview} from "./styledComponents/DragPreview";
  */
 export const DefaultLayout: FC<
     Omit<ILayoutProps, "components"> & {components?: Partial<ILayoutComponents>}
-> = ({state, components = {}}) => {
+> = ({state, components = {}, getContent}) => {
     return (
         <Layout
             state={state}
+            getContent={getContent}
             components={{
                 DropArea,
                 DragPreview,

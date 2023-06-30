@@ -1,5 +1,4 @@
-import {Parser} from "parsimmon";
-
+import type {Parser} from "parsimmon";
 declare module "parsimmon" {
     function seq<V1, V2, V3, V4, V5, V6, V7, V8>(
         p1: Parser<V1>,

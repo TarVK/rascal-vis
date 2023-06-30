@@ -1,9 +1,9 @@
 import P, {Parser} from "parsimmon";
-import {IVal} from "../_types/IVal";
+import {IValPlain} from "../_types/IVal";
 
 const WS = P.regex(/\s*/);
-export const value: Parser<IVal> = P.lazy(() =>
-    P.alt<IVal>(constr, node, map, set, list, tuple, string, number, boolean, loc)
+export const value: Parser<IValPlain> = P.lazy(() =>
+    P.alt<IValPlain>(constr, node, map, set, list, tuple, string, number, boolean, loc)
 );
 
 const identifier = P.regex(/[\\\-a-zA-Z]+/).desc("identifier");

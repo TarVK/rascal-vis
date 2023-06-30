@@ -16,14 +16,11 @@ import {ILayoutSettings} from "./_types/ILayoutSettings";
  * A component to store the layout of the application
  */
 export class LayoutState {
-    public readonly getContent: IContentGetter;
-
     /** The current layout */
     protected layout = new Field<IPanelState>({
         type: "tabs",
         id: "0",
-        tabs: ["0", "1", "2", "3", "4"],
-        selected: "0",
+        tabs: [],
     });
 
     protected dragging = new Field<null | IDragData>(null);
@@ -33,14 +30,9 @@ export class LayoutState {
     });
 
     /***
-     * Creates a new layout state, using the content getter to specify the content of the layout
+     * Creates a new layout state
      */
-    public constructor(
-        contentGetter: IContentGetter,
-        settings: Partial<ILayoutSettings> = {}
-    ) {
-        this.getContent = contentGetter;
-
+    public constructor(settings: Partial<ILayoutSettings> = {}) {
         this.settings.set({...this.settings.get(), ...settings});
     }
 
@@ -94,6 +86,15 @@ export class LayoutState {
      */
     public getAllContentIDs(hook?: IDataHook): string[] {
         return getStateContents(this.layout.get(hook));
+    }
+
+    /**
+     * Retrieves all the tab panel ids
+     * @param hook The hook to subscribe to changes
+     * @returns All the opened tab panels
+     */
+    public getAllTabPanelIDs(hook?: IDataHook): string[] {
+        return getStateContents(this.layout.get(hook), true);
     }
 
     // Dragging data
@@ -258,12 +259,13 @@ export function panelDataToState(data: IPanelData): IPanelState {
 /**
  * Retrieves all of the content IDs that are currently rendered
  * @param state The state to get the content ids from
+ * @param panels Whether to retrieve the panel instead of the tabs
  * @returns The content ids
  */
-export function getStateContents(state: IPanelState): string[] {
+export function getStateContents(state: IPanelState, panels?: boolean): string[] {
     if (state.type == "split")
-        return state.panels.flatMap(panel => getStateContents(panel.content));
-    return state.tabs;
+        return state.panels.flatMap(panel => getStateContents(panel.content, panels));
+    return panels ? [state.id] : state.tabs;
 }
 
 /**

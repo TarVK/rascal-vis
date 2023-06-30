@@ -16,6 +16,10 @@ module.exports = env => ({
                 test: /\.css$/i,
                 use: ["style-loader", "css-loader"],
             },
+            {
+                test: /\.txt$/i,
+                use: "raw-loader",
+            },
         ],
     },
     devServer: {
@@ -25,7 +29,7 @@ module.exports = env => ({
         historyApiFallback: true,
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js"],
+        extensions: [".tsx", ".ts", ".js", ".txt"],
     },
     output: {
         filename: "bundle.js",

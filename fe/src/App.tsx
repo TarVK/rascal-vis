@@ -9,18 +9,30 @@ import {
 } from "react-resizable-panels";
 import {LayoutState} from "./layout/LayoutState";
 import {DefaultLayout} from "./layout/DefaultLayout";
-
-const layoutState = new LayoutState(id => ({
-    id,
-    name: id,
-    forceOpen: Number(id) % 2 == 0,
-    content: <div style={{padding: 20}}>Content for: {id}</div>,
-}));
+import {usePersistentMemo} from "./utils/usePersistentMemo";
+import {AppState} from "./state/AppState";
+import {IPanelComponents} from "./_types/IPanelComponents";
+import val from "./value.txt";
+import {TextPanel} from "./visualizations/text/TextPanel";
 
 export const App: FC = () => {
+    const state = usePersistentMemo(() => {
+        const state = new AppState();
+        state.setValueText(val);
+        return state;
+    }, []);
+
     return (
         <>
-            <DefaultLayout state={layoutState} />
+            <DefaultLayout
+                state={state.getLayoutState()}
+                getContent={(id, hook) => state.getPanelUI(id, components, hook)}
+            />
         </>
     );
+};
+
+const components: IPanelComponents = {
+    none: () => <div>Not found</div>,
+    default: TextPanel,
 };
