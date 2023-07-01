@@ -1,6 +1,6 @@
 import React, {FC} from "react";
 import {DataCacher, Field, IDataHook} from "model-react";
-import {IVal, IValPlain} from "../_types/IVal";
+import {IEntry, IVal, IValPlain} from "../_types/IVal";
 import {value} from "../parse/parser";
 import {Failure, Result} from "parsimmon";
 import {dataAddress} from "../dataAddress";
@@ -19,6 +19,9 @@ import {getName} from "../parse/getName";
  * Representing all application state data
  */
 export class AppState {
+    protected highlighting = new Field<IVal | null>(null);
+    protected hoverHighlighting = new Field<IVal | null>(null);
+
     protected valueText = new Field<null | string>(null);
     protected parseData = new DataCacher<null | Result<IValPlain>>(h => {
         const text = this.valueText.get(h);
@@ -253,19 +256,23 @@ export class AppState {
      * Focuses on the specified value in the UI
      * @param value The value to focus the UI on
      */
-    public focus(value: IVal): void {}
+    public focus(value: IVal | IEntry): void {}
 
     /**
      * Sets the given value to be highlighted in the UI
      * @param value The value to be highlighted
      */
-    public setHighlight(value: IVal | null): void {}
+    public setHighlight(value: IVal | null): void {
+        this.highlighting.set(value);
+    }
 
     /**
      * Sets the given value to be hover highlighted in the UI
      * @param value The value to be hover highlighted
      */
-    public setHoverHighlight(value: IVal | null): void {}
+    public setHoverHighlight(value: IVal | null): void {
+        this.hoverHighlighting.set(value);
+    }
 
     /**
      * Retrieves the currently highlighted value
@@ -273,7 +280,7 @@ export class AppState {
      * @returns The value to be highlighted
      */
     public getHighlight(hook?: IDataHook): IVal | null {
-        return null;
+        return this.highlighting.get(hook);
     }
 
     /**
@@ -282,6 +289,6 @@ export class AppState {
      * @returns The value to be hover highlighted
      */
     public getHoverHighlight(hook?: IDataHook): IVal | null {
-        return null;
+        return this.hoverHighlighting.get(hook);
     }
 }

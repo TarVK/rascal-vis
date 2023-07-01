@@ -1,25 +1,75 @@
-import React, {FC, Fragment, useRef, useLayoutEffect, ReactNode, useState} from "react";
+import React, {
+    FC,
+    Fragment,
+    useRef,
+    useLayoutEffect,
+    ReactNode,
+    useState,
+    RefObject,
+    forwardRef,
+    useCallback,
+    useMemo,
+} from "react";
 import {IValNode} from "../../_types/IValNode";
 import {IEntry, IVal} from "../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
 import {highlight} from "./highlight";
+import {IHoverHandlers} from "./_types/IHoverHandler";
 
 // Based on an in browser measurement in chrome
 const pixelsPerChar = 722 / 100;
 
-export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
-    value,
-    className,
-}) => {
-    const ref = useRef<HTMLDivElement>(null);
+export const ValueHighlight = forwardRef<
+    HTMLDivElement,
+    {
+        value: IVal | IEntry;
+        className?: string;
+        onHover?: (value: IVal | null) => void;
+        wrapElement?: (node: ReactNode) => ReactNode;
+    }
+>(({value, className, wrapElement = n => n, onHover}, ref) => {
+    // Manage the hover stack and invoking of the callback
+    const hoverHandlers = useMemo<IHoverHandlers | undefined>(() => {
+        if (!onHover) return undefined;
+
+        const hoverStack: IVal[] = [];
+        const map = new Map<number, {onEnter: () => void; onLeave: () => void}>();
+        return (value: IVal) => {
+            const handler = map.get(value.id);
+            if (handler) return handler;
+
+            const newHandler = {
+                onEnter: () => {
+                    hoverStack.push(value);
+                    onHover(value);
+                },
+                onLeave: () => {
+                    const index = hoverStack.indexOf(value);
+                    if (index == -1) return;
+                    hoverStack.splice(index, 1);
+                    const top = hoverStack[hoverStack.length - 1] ?? null;
+                    onHover(top);
+                },
+            };
+            map.set(value.id, newHandler);
+            return newHandler;
+        };
+    }, [value, onHover]);
+
+    // Determine the content at the right size, using the highlight function
+    const sizeRef = useRef<HTMLDivElement>(null);
     const [content, setContent] = useState<ReactNode>(null);
     useLayoutEffect(() => {
-        const el = ref.current;
+        const el = sizeRef.current;
+        if (ref) {
+            if (ref instanceof Function) ref(sizeRef.current);
+            else (ref.current as any) = sizeRef.current;
+        }
         if (!el) return;
 
         let prevData: {fit: IHighlight; noFit: IHighlight | null} | null = null;
         function calculate() {
-            const el = ref.current;
+            const el = sizeRef.current;
             if (!el) return;
 
             const {width} = el.getBoundingClientRect();
@@ -33,27 +83,27 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
                 if (inRange) return;
             }
 
-            const highlightData = highlightFit(value, maxLength);
+            const highlightData = highlightFit(value, maxLength, hoverHandlers);
             // const highlightData = highlight(value, 2);
             prevData = highlightData;
-            setContent(highlightData.fit.element);
+            setContent(highlightData.fit.el);
         }
         calculate();
 
         const observer = new ResizeObserver(calculate);
         observer.observe(el);
         return () => observer.disconnect();
-    }, [value]);
+    }, [value, hoverHandlers]);
 
     return (
         <div
             className={className}
-            ref={ref}
+            ref={sizeRef}
             style={{fontFamily: "consolas", fontSize: 13}}>
-            {content}
+            {wrapElement(content)}
         </div>
     );
-};
+});
 
 /**
  * Highlights the given value, such that it has at most the number of specified characters
@@ -63,12 +113,13 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
  */
 export function highlightFit(
     value: IVal | IEntry,
-    maxLength: number
+    maxLength: number,
+    handlers?: IHoverHandlers
 ): {fit: IHighlight; noFit: IHighlight | null} {
-    let prev = highlight(value, 0);
-    for (let i = 1; i < 100; i++) {
-        let newHighlight = highlight(value, i);
-        if (newHighlight.length == prev.length) return {fit: prev, noFit: null};
+    let prev = highlight(value, 1);
+    for (let i = 2; i < 100; i++) {
+        let newHighlight = highlight(value, i, handlers);
+        if (!newHighlight.overflow) return {fit: newHighlight, noFit: null};
         if (newHighlight.length > maxLength) return {fit: prev, noFit: newHighlight};
         prev = newHighlight;
     }

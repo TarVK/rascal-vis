@@ -31,6 +31,8 @@ export class LayoutState {
         closeEmptyPanel: true,
     });
 
+    protected closeListeners: Map<string, (() => void)[]> = new Map();
+
     /***
      * Creates a new layout state
      */
@@ -142,7 +144,14 @@ export class LayoutState {
     public setDraggingData(dragData: null | IDragData): void {
         const target = this.getAllTabs().find(({id}) => id == dragData?.targetId);
         if (target && dragData) dragData = {...dragData, target};
+
+        const oldDraggingData = this.dragging.get();
         this.dragging.set(dragData);
+
+        if (oldDraggingData && !dragData) {
+            const oldTargetID = oldDraggingData.targetId;
+            this.schedulePotentialCloseEvent(oldTargetID);
+        }
     }
 
     /**
@@ -225,6 +234,7 @@ export class LayoutState {
 
             return newLayout;
         });
+        this.schedulePotentialCloseEvent(tabId);
     }
 
     /**
@@ -284,6 +294,41 @@ export class LayoutState {
             );
             return newLayout;
         });
+    }
+
+    /**
+     * Add an event listener to listen for tab closing events
+     * @param tabId The id of the tab t listen for
+     * @param handler The close handler
+     * @returns The function to call to remove the handler
+     */
+    public addCloseHandler(tabId: string, handler: () => void): () => void {
+        let listeners = this.closeListeners.get(tabId);
+        if (!listeners) {
+            listeners = [];
+            this.closeListeners.set(tabId, listeners);
+        }
+        listeners.push(handler);
+        return () => {
+            if (!listeners) return;
+            const index = listeners.indexOf(handler);
+            if (index != -1) listeners.splice(index, 1);
+            if (listeners.length == 0) this.closeListeners.delete(tabId);
+        };
+    }
+
+    /**
+     * Schedules a tab close call, if the tab hasn't reopened before the call
+     * @param tabId The tab id for which to call
+     */
+    public schedulePotentialCloseEvent(tabId: string) {
+        setTimeout(() => {
+            const stillExists = !!this.getAllTabs().find(({id}) => tabId == id);
+            if (!stillExists) {
+                this.closeListeners.get(tabId)?.forEach(handler => handler());
+                this.closeListeners.delete(tabId);
+            }
+        }, 10);
     }
 }
 

@@ -1,0 +1,18 @@
+- [ ] Add min-width for text panel
+- [ ] Add text panel overflow
+- [ ] Add value search
+- [ ] Add tab naming+menu
+- [ ] Add settings
+    - [ ] Add setting profiles
+    - [ ] Add settings saving
+- [ ] Add layout profiles
+    - [ ] Add layout saving
+- [ ] Add welcome screen
+- [ ] Add special data constructors: 
+    - [ ] layout/settings selection constructor
+        - [ ] highlight/focus constructors
+    - [ ] tab selector for value
+    - [ ] graph constructor
+    - [ ] grammar constructor
+- [ ] Add graph panel
+- [ ] Add grammar panel

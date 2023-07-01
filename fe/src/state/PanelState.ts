@@ -10,7 +10,7 @@ export class PanelState {
     public readonly valueNodes: IValNode[];
     public readonly value: IVal | IEntry;
     protected id: string = uuid();
-    protected closable = new Field<boolean>(false);
+    protected closable = new Field<boolean>(true);
 
     protected visualize = new Field(false);
     protected name = new Field("");

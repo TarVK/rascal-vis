@@ -4,12 +4,17 @@ import {IPoint} from "./_types/IPoint";
 /**
  * A hook that can be used to add a drag event start listener
  * @param onDrag The callback to trigger when dragged
- * @param distanceThreshold The minimum distance to move before considering it a drag
+ * @param options Additional options
  * @returns A reference to be added to the div for which to detect dragging
  */
 export const useDragStart = (
-    onDrag: (start: IPoint, offset: IPoint) => void,
-    distanceThreshold: number = 10
+    onDrag: (start: IPoint, offset: IPoint, target: HTMLElement) => void,
+    {
+        /** Whether to prevent the base drag events, even before dragging trigger */
+        preventDefault = true,
+        /** The minimum distance to move before considering it a drag */
+        distanceThreshold = 10,
+    }: {preventDefault?: boolean; distanceThreshold?: number} = {}
 ) => {
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -28,6 +33,7 @@ export const useDragStart = (
             };
         };
         const moveListener = (event: MouseEvent) => {
+            if (preventDefault) event.preventDefault();
             if (!origin) return;
             const distance = getDistance(event, origin);
             if (distanceThreshold < distance) {
@@ -37,7 +43,8 @@ export const useDragStart = (
                         x: event.pageX,
                         y: event.pageY,
                     },
-                    offset ?? {x: 0, y: 0}
+                    offset ?? {x: 0, y: 0},
+                    el
                 );
             }
         };

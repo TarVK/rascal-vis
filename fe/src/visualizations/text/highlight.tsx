@@ -2,87 +2,111 @@ import React, {FC, Fragment, useRef, useLayoutEffect, ReactNode, useState} from 
 import {IValNode} from "../../_types/IValNode";
 import {IEntry, IVal} from "../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
+import {IHoverHandlers} from "./_types/IHoverHandler";
 
 /**
  * Retrieves the highlighted text fora  given value
  * @param value The value to be highlighted
  * @param remainingDepth The remaining depth to be expanded
- * @returns The highlighted text element and character count
+ * @param hoverHandler The value hover handlers
+ * @returns The highlighted text el and character count
  */
-export function highlight(value: IVal | IEntry, remainingDepth: number): IHighlight {
-    const rec = (value: IVal | IEntry) => highlight(value, remainingDepth - 1);
-    const baseSymbol = (text: string, type: string) => ({
-        length: text.length,
-        element: <span className={type}>{text}</span>,
-    });
+export function highlight(
+    value: IVal | IEntry,
+    remainingDepth: number,
+    hoverHandler?: IHoverHandlers
+): IHighlight {
+    const rec = (value: IVal | IEntry) =>
+        highlight(value, remainingDepth - 1, hoverHandler);
+    const baseSymbol = (text: string, type: string, id?: number) => {
+        const hasId = id != undefined;
+        return {
+            length: text.length,
+            el: (
+                <span
+                    className={type + (hasId ? " " + id : "")}
+                    id={id + ""}
+                    onMouseEnter={hasId ? handlers?.onEnter : undefined}
+                    onMouseLeave={hasId ? handlers?.onLeave : undefined}>
+                    {text}
+                </span>
+            ),
+            overflow: true,
+        };
+    };
     const join = (nodes: IHighlight[], sep: IHighlight): IHighlight[] =>
         nodes.flatMap(node => [sep, node]).slice(1);
-    const collapse = () => baseSymbol("...", "collapse");
+    const collapse = () => ({...baseSymbol("...", "collapse"), overflow: true});
+    const handlers = "key" in value ? undefined : hoverHandler?.(value);
 
     if ("key" in value) {
         if (remainingDepth == 0) return collapse();
-        const {length: keyLength, element: keyElement} = rec(value.key);
-        const {length: sepLength, element: sepElement} = baseSymbol(": ", "symbol");
-        const {length: valueLength, element: valueElement} = rec(value.value);
+        const {length: keyLength, el: keyEl, overflow: ko} = rec(value.key);
+        const {length: sepLength, el: sepEl} = baseSymbol(": ", "symbol");
+        const {length: valueLength, el: valueEl, overflow: vo} = rec(value.value);
         return {
             length: keyLength + sepLength + valueLength,
-            element: (
+            el: (
                 <>
-                    {keyElement}
-                    {sepElement}
-                    {valueElement}
+                    {keyEl}
+                    {sepEl}
+                    {valueEl}
                 </>
             ),
+            overflow: ko || vo,
         };
     } else if (value.type == "constr" || value.type == "node") {
         if (remainingDepth == 0) return collapse();
-        const {length: nameLength, element: nameElement} = baseSymbol(
-            value.name,
-            "identifier"
-        );
-        const {length: openLength, element: openElement} = baseSymbol("(", "symbol");
+        const {length: nameLength, el: nameEl} = baseSymbol(value.name, "identifier");
+        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
         const indexedChildren = value.children.map(rec);
         const namedChildren = value.namedChildren.map(({name, value}) => {
-            const {length: nameLength, element: nameElement} = baseSymbol(name, "name");
-            const {length: sepLength, element: sepElement} = baseSymbol("=", "symbol");
-            const {length: childLength, element: childElement} = rec(value);
+            const {length: nameLength, el: nameEl} = baseSymbol(name, "name");
+            const {length: sepLength, el: sepEl} = baseSymbol("=", "symbol");
+            const {length: childLength, el: childEl, overflow} = rec(value);
             return {
                 length: nameLength + sepLength + childLength,
-                element: (
+                el: (
                     <>
-                        {nameElement}
-                        {sepElement}
-                        {childElement}
+                        {nameEl}
+                        {sepEl}
+                        {childEl}
                     </>
                 ),
+                overflow,
             };
         });
         const joinedChildren = join(
             [...indexedChildren, ...namedChildren],
             baseSymbol(", ", "symbol")
         );
-        const {length: closeLength, element: closeElement} = baseSymbol(")", "symbol");
+        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
         return {
             length:
                 nameLength +
                 openLength +
                 joinedChildren.reduce((a, {length: b}) => a + b, 0) +
                 closeLength,
-            element: (
-                <>
-                    {nameElement}
-                    {openElement}
-                    {joinedChildren.map(({element}, i) => (
-                        <Fragment key={i}>{element}</Fragment>
+            el: (
+                <span
+                    className="value"
+                    id={value.id + ""}
+                    onMouseEnter={handlers?.onEnter}
+                    onMouseLeave={handlers?.onLeave}>
+                    {nameEl}
+                    {openEl}
+                    {joinedChildren.map(({el: el}, i) => (
+                        <Fragment key={i}>{el}</Fragment>
                     ))}
-                    {closeElement}
-                </>
+                    {closeEl}
+                </span>
             ),
+            overflow: joinedChildren.some(({overflow}) => overflow),
         };
     } else if (value.type == "map") {
         if (remainingDepth == 0) return collapse();
-        const {length: openLength, element: openElement} = baseSymbol("(", "symbol");
-        const {length: closeLength, element: closeElement} = baseSymbol(")", "symbol");
+        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
+        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
         if (remainingDepth == 2) {
             // Would result in `(...: ..., ...: ...)`, we prefer `(..., ..., ...)` instead
             remainingDepth = 1;
@@ -94,15 +118,20 @@ export function highlight(value: IVal | IEntry, remainingDepth: number): IHighli
                 openLength +
                 joinedChildren.reduce((a, {length: b}) => a + b, 0) +
                 closeLength,
-            element: (
-                <>
-                    {openElement}
-                    {joinedChildren.map(({element}, i) => (
-                        <Fragment key={i}>{element}</Fragment>
+            el: (
+                <span
+                    className="value"
+                    id={value.id + ""}
+                    onMouseEnter={handlers?.onEnter}
+                    onMouseLeave={handlers?.onLeave}>
+                    {openEl}
+                    {joinedChildren.map(({el: el}, i) => (
+                        <Fragment key={i}>{el}</Fragment>
                     ))}
-                    {closeElement}
-                </>
+                    {closeEl}
+                </span>
             ),
+            overflow: joinedChildren.some(({overflow}) => overflow),
         };
     } else if (value.type == "list" || value.type == "set" || value.type == "tuple") {
         const brackets =
@@ -111,32 +140,31 @@ export function highlight(value: IVal | IEntry, remainingDepth: number): IHighli
                 : value.type == "tuple"
                 ? {o: "<", c: ">"}
                 : {o: "[", c: "]"};
-        const {length: countLength, element: countElement} =
+        const {length: countLength, el: countEl} =
             value.type == "set" || value.type == "list"
                 ? baseSymbol(`(${value.children.length})`, "count")
-                : {length: 0, element: undefined};
+                : {length: 0, el: undefined};
 
-        const {length: openLength, element: openElement} = baseSymbol(
-            brackets.o,
-            "symbol"
-        );
-        const {length: closeLength, element: closeElement} = baseSymbol(
-            brackets.c,
-            "symbol"
-        );
+        const {length: openLength, el: openEl} = baseSymbol(brackets.o, "symbol");
+        const {length: closeLength, el: closeEl} = baseSymbol(brackets.c, "symbol");
 
         if (remainingDepth == 0) {
-            const {length: collapseLength, element: collapseElement} = collapse();
+            const {length: collapseLength, el: collapseEl} = collapse();
             return {
                 length: countLength + openLength + collapseLength + closeLength,
-                element: (
-                    <>
-                        {countElement}
-                        {openElement}
-                        {collapseElement}
-                        {closeElement}
-                    </>
+                el: (
+                    <span
+                        className="value"
+                        id={value.id + ""}
+                        onMouseEnter={handlers?.onEnter}
+                        onMouseLeave={handlers?.onLeave}>
+                        {countEl}
+                        {openEl}
+                        {collapseEl}
+                        {closeEl}
+                    </span>
                 ),
+                overflow: true,
             };
         }
 
@@ -147,16 +175,21 @@ export function highlight(value: IVal | IEntry, remainingDepth: number): IHighli
                 openLength +
                 joinedChildren.reduce((a, {length: b}) => a + b, 0) +
                 closeLength,
-            element: (
-                <>
-                    {countElement}
-                    {openElement}
-                    {joinedChildren.map(({element}, i) => (
-                        <Fragment key={i}>{element}</Fragment>
+            el: (
+                <span
+                    className="value"
+                    id={value.id + ""}
+                    onMouseEnter={handlers?.onEnter}
+                    onMouseLeave={handlers?.onLeave}>
+                    {countEl}
+                    {openEl}
+                    {joinedChildren.map(({el: el}, i) => (
+                        <Fragment key={i}>{el}</Fragment>
                     ))}
-                    {closeElement}
-                </>
+                    {closeEl}
+                </span>
             ),
+            overflow: joinedChildren.some(({overflow}) => overflow),
         };
     } else if (value.type == "string") {
         if (remainingDepth == 0) return collapse();
@@ -167,15 +200,20 @@ export function highlight(value: IVal | IEntry, remainingDepth: number): IHighli
         );
         return {
             length: parts.reduce((a, {length: b}) => a + b, 2), // 2 to account for the quotes
-            element: (
-                <span className="string">
+            el: (
+                <span
+                    className="string value"
+                    id={value.id + ""}
+                    onMouseEnter={handlers?.onEnter}
+                    onMouseLeave={handlers?.onLeave}>
                     "
-                    {parts.map(({element}, i) => (
-                        <Fragment key={i}>{element}</Fragment>
+                    {parts.map(({el}, i) => (
+                        <Fragment key={i}>{el}</Fragment>
                     ))}
                     "
                 </span>
             ),
+            overflow: false,
         };
     } else if (value.type == "location") {
         if (remainingDepth == 0) return collapse();
@@ -185,10 +223,11 @@ export function highlight(value: IVal | IEntry, remainingDepth: number): IHighli
                     ? `(${value.position.offset.start},${value.position.offset.end},<${value.position.start.line},${value.position.start.column}>,<${value.position.end.line},${value.position.end.column}>)`
                     : ""
             }`,
-            "location"
+            "location value",
+            value.id
         );
     } else {
         if (remainingDepth == 0) return collapse();
-        return baseSymbol(value.value + "", value.type);
+        return baseSymbol(value.value + "", "value " + value.type, value.id);
     }
 }

@@ -1,1 +1,1 @@
-export type IHighlight = {length: number; element: JSX.Element};
+export type IHighlight = {length: number; el: JSX.Element; overflow: boolean};
