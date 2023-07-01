@@ -10,7 +10,7 @@ import {INodeRole, IValNode} from "../_types/IValNode";
 export function createValueNodes(value: IVal): [IValNode[], IValMap] {
     const out: IValNode[] = [];
     const map: IValMap = new Map();
-    createValueNodesRec(value, null, null, out, map);
+    createValueNodesRec(value, -1, null, out, map);
     return [out, map];
 }
 
@@ -26,7 +26,7 @@ export function createValueNodes(value: IVal): [IValNode[], IValMap] {
  */
 function createValueNodesRec(
     value: IVal,
-    parent: number | null,
+    parent: number,
     role: INodeRole | null,
     output: IValNode[],
     map: IValMap,

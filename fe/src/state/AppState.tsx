@@ -13,6 +13,7 @@ import {createValueNodes} from "../parse/createValueNodes";
 import {IValNode} from "../_types/IValNode";
 import {IValMap} from "../_types/IValMap";
 import {INode} from "react-accessible-treeview";
+import {getName} from "../parse/getName";
 
 /**
  * Representing all application state data
@@ -56,6 +57,15 @@ export class AppState {
     });
 
     /**
+     * A map for obtaining all nodes that contain a given value
+     */
+    public valueNodesMap = new DataCacher<null | IValMap>(h => {
+        const valueData = this.valueData.get(h);
+        if (valueData) return valueData[1];
+        return null;
+    });
+
+    /**
      * Tries to load the latest value from the server
      */
     public async loadValue(): Promise<void> {
@@ -75,29 +85,11 @@ export class AppState {
     public setValueText(text: string): void {
         this.valueText.set(text);
         const valueNodes = this.valueNodes.get();
-        if (valueNodes) {
-            const fakeRoot: IValNode = {
-                id: -1,
-                name: "",
-                children: [valueNodes[0].id],
-                parent: null,
-                value: {type: "boolean", id: -1, value: false},
-                range: 0,
-            };
-            const firstNode = {
-                ...valueNodes[0],
-                parent: -1,
-            };
-            const basePanel = new PanelState([
-                fakeRoot,
-                firstNode,
-                ...valueNodes.slice(1),
-            ]);
+        if (valueNodes && valueNodes.length > 0) {
+            const basePanel = this.openNode(valueNodes[0]);
+            if (!basePanel) return;
             basePanel.setCanClose(false);
             basePanel.setName("Root");
-            this.addPanel(basePanel);
-            const panelId = this.layoutState.getAllTabPanelIDs()[0];
-            this.layoutState.openTab(panelId, basePanel.getID());
         }
     }
 
@@ -192,12 +184,65 @@ export class AppState {
         return {
             id,
             name: panelState.getName(hook),
-            content: <PanelComponent panel={panelState} />,
+            content: <PanelComponent state={this} panel={panelState} />,
             forceOpen: !panelState.canClose(hook),
         };
     }
 
     // value interactions
+    /**
+     * Opens the given value in a new panel
+     * @param value The value to be opened
+     * @param show Whether to show the new tab
+     * @returns The state of the opened tab
+     */
+    public open(value: IVal, show: boolean = true): PanelState | null {
+        const map = this.valueNodesMap.get();
+        if (!map) return null;
+
+        const nodes = map.get(value);
+        if (!nodes || nodes?.length == 0) return null;
+
+        return this.openNode(nodes[0], show);
+    }
+
+    /**
+     * Opens the value of the given node in a new panel
+     * @param value The value to be opened
+     * @param show Whether to show the new tab
+     * @returns The state of the opened tab, or null if failed
+     */
+    public openNode(value: IValNode, show: boolean = true): PanelState | null {
+        const nodes = this.valueNodes.get();
+        if (!nodes) return null;
+
+        const index = nodes.indexOf(value);
+        if (index == -1) return null;
+
+        const childNodes = nodes.slice(index + 1, index + 1 + value.range);
+        const allNodes: IValNode[] = [
+            {
+                id: value.parent!,
+                name: "",
+                children: [value.id],
+                parent: null,
+                value: {type: "boolean", id: -1, value: false},
+                range: 0,
+            },
+            value,
+            ...childNodes,
+        ];
+        const panelState = new PanelState(allNodes);
+        this.addPanel(panelState);
+        panelState.setName(getName(value.value));
+        if (show) {
+            const panelId = this.layoutState.getAllTabPanelIDs()[0];
+            this.layoutState.openTab(panelId, panelState.getID());
+            console.log(panelId, panelState.getID());
+        }
+        return panelState;
+    }
+
     /**
      * Reveals the value in the UI
      * @param value The value to be revealed
