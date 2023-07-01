@@ -6,11 +6,13 @@ import {
     IPanelSplitStatePanel,
     IPanelState,
     IPanelTabsState,
+    ITabState,
 } from "./_types/IPanelState";
 import {IDragData} from "./_types/IDragData";
 import {IDropPanelSplitSide} from "./_types/IDropSide";
 import {v4 as uuid} from "uuid";
 import {ILayoutSettings} from "./_types/ILayoutSettings";
+import {createElement} from "react";
 
 /**
  * A component to store the layout of the application
@@ -80,12 +82,12 @@ export class LayoutState {
     }
 
     /**
-     * Retrieves all the content ids that are being rendered
+     * Retrieves all the contents that are being rendered
      * @param hook The hook to subscribe to changes
      * @returns All the opened content ids
      */
-    public getAllContentIDs(hook?: IDataHook): string[] {
-        return getStateContents(this.layout.get(hook));
+    public getAllTabs(hook?: IDataHook): ITabState[] {
+        return getStateTabs(this.layout.get(hook));
     }
 
     /**
@@ -94,7 +96,42 @@ export class LayoutState {
      * @returns All the opened tab panels
      */
     public getAllTabPanelIDs(hook?: IDataHook): string[] {
-        return getStateContents(this.layout.get(hook), true);
+        return getStateTabPanels(this.layout.get(hook));
+    }
+
+    // Atomic layout change management
+    protected pauseLayoutUpdateDepth: number = 0;
+    protected latestLayout: IPanelState | null = null;
+
+    /**
+     * Updates the layout, without committing the changes right away, depending on update depth
+     * @param update The update to queue
+     */
+    protected updateLayout(update: (oldLayout: IPanelState) => IPanelState) {
+        if (this.pauseLayoutUpdateDepth == 0) {
+            this.layout.set(update(this.layout.get()));
+            return;
+        }
+
+        const layout = this.latestLayout ?? this.layout.get();
+        const newLayout = update(layout);
+        if (layout == newLayout) return;
+        this.latestLayout = newLayout;
+    }
+
+    /**
+     * A function to batch all layout changes, not releasing intermediate updates to the UI
+     * @param callChanges The function to perform the changes
+     */
+    public batchChanges(callChanges: () => void) {
+        this.pauseLayoutUpdateDepth++;
+        callChanges();
+        this.pauseLayoutUpdateDepth--;
+        if (this.pauseLayoutUpdateDepth <= 0 && this.latestLayout) {
+            this.pauseLayoutUpdateDepth = 0;
+            this.layout.set(this.latestLayout);
+            this.latestLayout = null;
+        }
     }
 
     // Dragging data
@@ -103,6 +140,8 @@ export class LayoutState {
      * @param dragData The data for dragging
      */
     public setDraggingData(dragData: null | IDragData): void {
+        const target = this.getAllTabs().find(({id}) => id == dragData?.targetId);
+        if (target && dragData) dragData = {...dragData, target};
         this.dragging.set(dragData);
     }
 
@@ -121,10 +160,12 @@ export class LayoutState {
      * @param panelId The panel to be removed
      */
     public removePanel(panelId: string): void {
-        const currentLayout = updateDefaultWeights(this.layout.get());
-        const newLayout = removePanel(currentLayout, panelId);
-        if (!newLayout) this.layout.set({type: "tabs", id: "0", tabs: []});
-        else this.layout.set(newLayout);
+        this.updateLayout(layout => {
+            const currentLayout = updateDefaultWeights(layout);
+            const newLayout = removePanel(currentLayout, panelId);
+            if (!newLayout) return {type: "tabs", id: "0", tabs: []};
+            else return newLayout;
+        });
     }
 
     /**
@@ -134,10 +175,17 @@ export class LayoutState {
      * @returns The id of the created panel
      */
     public addPanel(nextToId: string, side: IDropPanelSplitSide): string | null {
-        const currentLayout = updateDefaultWeights(this.layout.get());
-        const [newState, newId] = addPanel(currentLayout, nextToId, side);
-        if (newId != null) this.layout.set(newState);
-        return newId;
+        let out: string | null = null;
+        this.updateLayout(layout => {
+            const currentLayout = updateDefaultWeights(layout);
+            const [newState, newId] = addPanel(currentLayout, nextToId, side);
+            if (newId != null) {
+                out = newId;
+                return newState;
+            }
+            return layout;
+        });
+        return out;
     }
 
     // Tabs modification
@@ -147,62 +195,75 @@ export class LayoutState {
      * @param tabId The id of the tab to close
      */
     public closeTab(panelId: string, tabId: string): void {
-        const currentLayout = updateDefaultWeights(this.layout.get());
-        let isNowEmpty = false;
-        let newLayout = modifyTabs(
-            currentLayout,
-            panelId,
-            ({tabs, selected, ...data}) => {
-                const index = tabs.indexOf(tabId);
-                const newTabs = tabs.filter(tab => tab != tabId);
-                if (newTabs.length == 0) isNowEmpty = true;
-                return {
-                    ...data,
-                    tabs: newTabs,
-                    selected:
-                        selected != tabId
-                            ? selected
-                            : newTabs[Math.max(0, Math.min(index, newTabs.length - 1))],
-                };
+        this.updateLayout(layout => {
+            const currentLayout = updateDefaultWeights(layout);
+            let isNowEmpty = false;
+            let newLayout = modifyTabs(
+                currentLayout,
+                panelId,
+                ({tabs, selected, ...data}) => {
+                    const index = tabs.findIndex(tab => tab.id == tabId);
+                    const newTabs = tabs.filter(tab => tab.id != tabId);
+                    if (newTabs.length == 0) isNowEmpty = true;
+                    return {
+                        ...data,
+                        tabs: newTabs,
+                        selected:
+                            selected != tabId
+                                ? selected
+                                : newTabs[
+                                      Math.max(0, Math.min(index, newTabs.length - 1))
+                                  ]?.id,
+                    };
+                }
+            );
+
+            if (isNowEmpty && this.settings.get().closeEmptyPanel) {
+                const removed = removePanel(newLayout, panelId);
+                if (removed != null) newLayout = removed;
             }
-        );
 
-        if (isNowEmpty && this.settings.get().closeEmptyPanel) {
-            const removed = removePanel(newLayout, panelId);
-            if (removed != null) newLayout = removed;
-        }
-
-        this.layout.set(newLayout);
+            return newLayout;
+        });
     }
 
     /**
      * Opens the specified tab in the given panel
      * @param panelId The id of the panel in which to open the tab
-     * @param tabId The id of the tab to open
+     * @param tab The id of the tab to open
      * @param beforeTabId The id of the tab to place the new tab in front of
      */
-    public openTab(panelId: string, tabId: string, beforeTabId?: string): void {
-        const currentLayout = updateDefaultWeights(this.layout.get());
-        const newLayout = modifyTabs(
-            currentLayout,
-            panelId,
-            ({tabs, selected, ...data}) => {
-                const filteredTabs = tabs.filter(tab => tab != tabId);
-                let targetIndex = beforeTabId ? filteredTabs.indexOf(beforeTabId) : -1;
-                if (beforeTabId == tabId) targetIndex = tabs.indexOf(beforeTabId);
-                if (targetIndex < 0) targetIndex = filteredTabs.length;
-                return {
-                    ...data,
-                    tabs: [
-                        ...filteredTabs.slice(0, targetIndex),
-                        tabId,
-                        ...filteredTabs.slice(targetIndex),
-                    ],
-                    selected: selected ?? tabId,
-                };
-            }
-        );
-        this.layout.set(newLayout);
+    public openTab(panelId: string, tab: string | ITabState, beforeTabId?: string): void {
+        this.updateLayout(layout => {
+            const tabObj =
+                typeof tab == "string"
+                    ? {id: tab, element: document.createElement("div")}
+                    : tab;
+            const currentLayout = updateDefaultWeights(layout);
+            const newLayout = modifyTabs(
+                currentLayout,
+                panelId,
+                ({tabs, selected, ...data}) => {
+                    const filteredTabs = tabs.filter(tab => tab.id != tabObj.id);
+                    let targetIndex = beforeTabId
+                        ? filteredTabs.findIndex(({id}) => id == beforeTabId)
+                        : -1;
+                    if (beforeTabId == tab)
+                        targetIndex = tabs.findIndex(({id}) => id == beforeTabId);
+                    if (targetIndex < 0) targetIndex = filteredTabs.length;
+                    return {
+                        ...data,
+                        tabs: [
+                            ...filteredTabs.slice(0, targetIndex),
+                            tabObj,
+                            ...filteredTabs.slice(targetIndex),
+                        ],
+                        selected: selected ?? tabObj.id,
+                    };
+                }
+            );
+            return newLayout;
+        });
     }
 
     /**
@@ -211,12 +272,18 @@ export class LayoutState {
      * @param tabId The id of the tab to select
      */
     public selectTab(panelId: string, tabId: string): void {
-        const currentLayout = updateDefaultWeights(this.layout.get());
-        const newLayout = modifyTabs(currentLayout, panelId, ({selected, ...data}) => ({
-            ...data,
-            selected: data.tabs.includes(tabId) ? tabId : selected,
-        }));
-        this.layout.set(newLayout);
+        this.updateLayout(layout => {
+            const currentLayout = updateDefaultWeights(layout);
+            const newLayout = modifyTabs(
+                currentLayout,
+                panelId,
+                ({selected, ...data}) => ({
+                    ...data,
+                    selected: data.tabs.some(tab => tab.id == tabId) ? tabId : selected,
+                })
+            );
+            return newLayout;
+        });
     }
 }
 
@@ -235,7 +302,11 @@ export function panelStateToData(state: IPanelState): IPanelData {
                 content: panelStateToData(content),
             })),
         };
-    } else return state;
+    } else
+        return {
+            ...state,
+            tabs: state.tabs.map(({id}) => id),
+        };
 }
 
 /**
@@ -253,19 +324,33 @@ export function panelDataToState(data: IPanelData): IPanelState {
                 content: panelDataToState(content),
             })),
         };
-    else return data;
+    else
+        return {
+            ...data,
+            tabs: data.tabs.map(id => ({id, element: document.createElement("div")})),
+        };
 }
 
 /**
- * Retrieves all of the content IDs that are currently rendered
+ * Retrieves all of the tab panel IDs that are currently rendered
  * @param state The state to get the content ids from
- * @param panels Whether to retrieve the panel instead of the tabs
  * @returns The content ids
  */
-export function getStateContents(state: IPanelState, panels?: boolean): string[] {
+export function getStateTabPanels(state: IPanelState): string[] {
     if (state.type == "split")
-        return state.panels.flatMap(panel => getStateContents(panel.content, panels));
-    return panels ? [state.id] : state.tabs;
+        return state.panels.flatMap(panel => getStateTabPanels(panel.content));
+    return [state.id];
+}
+
+/**
+ * Retrieves all of the tabs that are currently rendered
+ * @param state The state to get the content ids from
+ * @returns The content ids
+ */
+export function getStateTabs(state: IPanelState): ITabState[] {
+    if (state.type == "split")
+        return state.panels.flatMap(panel => getStateTabs(panel.content));
+    return state.tabs;
 }
 
 /**

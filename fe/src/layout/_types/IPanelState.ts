@@ -1,3 +1,4 @@
+import {Field} from "model-react";
 import type {ImperativePanelGroupHandle} from "react-resizable-panels";
 
 /** The recursive panel type, used to render the layout */
@@ -20,6 +21,7 @@ export type IPanelSplitStatePanel = {
 export type IPanelTabsState = {
     type: "tabs";
     id: string;
-    tabs: string[];
+    tabs: ITabState[];
     selected?: string;
 };
+export type ITabState = {id: string; element: HTMLDivElement};

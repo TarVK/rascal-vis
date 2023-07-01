@@ -72,49 +72,61 @@ export const LayoutTabsPanel: FC<{
     const [h] = useDataHook();
     const isDragging = !!state.getDraggingData(h);
     const orderedContents = panel.tabs
-        .map(id => getContent(id, h))
+        .map(({id}) => getContent(id, h))
         .filter((v): v is IContent => v != undefined);
-    const selectedContent = orderedContents.find(({id}) => panel.selected == id);
 
-    const tabData = orderedContents.map<ITabData>(({id, name, forceOpen}) => ({
-        name,
-        id,
-        selected: id == panel.selected,
-        forceOpen: forceOpen ?? false,
-    }));
+    const tabData = orderedContents.flatMap<ITabData>(
+        ({id, content, forceOpen, ...rest}) => {
+            const elData = panel.tabs.find(tab => tab.id == id);
+            if (!elData) return [];
+            return [
+                {
+                    id,
+                    element: elData.element,
+                    ...rest,
+                    selected: id == panel.selected,
+                    forceOpen: forceOpen ?? false,
+                },
+            ];
+        }
+    );
 
     const onDropTab = (beforeId: string) => {
-        const dragging = state.getDraggingData();
-        if (!dragging?.targetId) return;
-        if (dragging.targetId == beforeId && dragging.removeFromPanelId == panel.id)
-            return; // Nothing should change
-        if (dragging.removeFromPanelId)
-            state.closeTab(dragging.removeFromPanelId, dragging.targetId);
-        state.openTab(panel.id, dragging.targetId, beforeId);
-        state.selectTab(panel.id, dragging.targetId);
+        state.batchChanges(() => {
+            const dragging = state.getDraggingData();
+            if (!dragging?.targetId) return;
+            if (dragging.targetId == beforeId && dragging.removeFromPanelId == panel.id)
+                return; // Nothing should change
+            if (dragging.removeFromPanelId)
+                state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+            state.openTab(panel.id, dragging.target ?? dragging.targetId, beforeId);
+            state.selectTab(panel.id, dragging.targetId);
+        });
     };
 
     const onDropSide = (side: IDropPanelSide) => {
-        const dragging = state.getDraggingData();
-        if (!dragging?.targetId) return;
+        state.batchChanges(() => {
+            const dragging = state.getDraggingData();
+            if (!dragging?.targetId) return;
 
-        // Insert in this tab
-        if (side == "in") {
-            if (dragging.removeFromPanelId == panel.id) return; // Nothing should change
-            if (dragging.removeFromPanelId)
-                state.closeTab(dragging.removeFromPanelId, dragging.targetId);
-            state.openTab(panel.id, dragging.targetId);
-            state.selectTab(panel.id, dragging.targetId);
-            return;
-        }
+            // Insert in this tab
+            if (side == "in") {
+                if (dragging.removeFromPanelId == panel.id) return; // Nothing should change
+                if (dragging.removeFromPanelId)
+                    state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+                state.openTab(panel.id, dragging.target ?? dragging.targetId);
+                state.selectTab(panel.id, dragging.targetId);
+                return;
+            }
 
-        // Or add a new panel
-        const targetPanelId = state.addPanel(panel.id, side);
-        if (targetPanelId) {
-            if (dragging.removeFromPanelId)
-                state.closeTab(dragging.removeFromPanelId, dragging.targetId);
-            state.openTab(targetPanelId, dragging.targetId);
-        }
+            // Or add a new panel
+            const targetPanelId = state.addPanel(panel.id, side);
+            if (targetPanelId) {
+                if (dragging.removeFromPanelId)
+                    state.closeTab(dragging.removeFromPanelId, dragging.targetId);
+                state.openTab(targetPanelId, dragging.target ?? dragging.targetId);
+            }
+        });
     };
 
     return (
@@ -131,13 +143,13 @@ export const LayoutTabsPanel: FC<{
                         ...data,
                     })
                 }
-                selectedTab={selectedContent?.id}
+                selectedTab={panel.selected}
                 dragging={isDragging}
                 onDrop={onDropTab}
                 state={state}
             />
             <components.TabsContent
-                contents={orderedContents.map(({id, ...rest}) => ({
+                contents={tabData.map(({id, ...rest}) => ({
                     id,
                     selected: panel.selected == id,
                     ...rest,

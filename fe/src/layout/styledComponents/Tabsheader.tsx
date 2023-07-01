@@ -78,7 +78,12 @@ export const TabsHeader: FC<
                                 }
                                 onClose={() => onCloseTab(id)}
                                 selected={id == selectedTab}
-                                onDrag={data => onDragStart({...data, targetId: id})}
+                                onDrag={data =>
+                                    onDragStart({
+                                        ...data,
+                                        targetId: id,
+                                    })
+                                }
                             />
                         )}
                     />

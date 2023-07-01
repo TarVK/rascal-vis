@@ -17,19 +17,26 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
         const el = ref.current;
         if (!el) return;
 
-        let oldWidth = 0;
+        let prevData: {fit: IHighlight; noFit: IHighlight | null} | null = null;
         function calculate() {
             const el = ref.current;
             if (!el) return;
 
             const {width} = el.getBoundingClientRect();
-            if (width == oldWidth || width == 0) return;
-            console.log("calculate", value, width, oldWidth);
-            oldWidth = width;
+            if (width == 0) return;
+
             const maxLength = width / pixelsPerChar;
+            if (prevData) {
+                const inRange =
+                    prevData.fit.length <= maxLength &&
+                    (!prevData.noFit || maxLength < prevData.noFit.length);
+                if (inRange) return;
+            }
+
             const highlightData = highlightFit(value, maxLength);
             // const highlightData = highlight(value, 2);
-            setContent(highlightData.element);
+            prevData = highlightData;
+            setContent(highlightData.fit.element);
         }
         calculate();
 
@@ -52,14 +59,18 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
  * Highlights the given value, such that it has at most the number of specified characters
  * @param value The value to be highlighted
  * @param maxLength The maximum number of characters
- * @returns The highlighting data
+ * @returns The highlighting data that does fit, and the next data that doesn't fit
  */
-export function highlightFit(value: IVal | IEntry, maxLength: number): IHighlight {
+export function highlightFit(
+    value: IVal | IEntry,
+    maxLength: number
+): {fit: IHighlight; noFit: IHighlight | null} {
     let prev = highlight(value, 0);
     for (let i = 1; i < 100; i++) {
         let newHighlight = highlight(value, i);
-        if (newHighlight.length > maxLength) return prev;
+        if (newHighlight.length == prev.length) return {fit: prev, noFit: null};
+        if (newHighlight.length > maxLength) return {fit: prev, noFit: newHighlight};
         prev = newHighlight;
     }
-    return prev;
+    return {fit: prev, noFit: null};
 }

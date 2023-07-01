@@ -21,4 +21,5 @@ export type ITabData = {
     name: string;
     id: string;
     forceOpen: boolean;
+    element: HTMLDivElement;
 };
