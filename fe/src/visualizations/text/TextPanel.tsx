@@ -99,6 +99,10 @@ const ValueNode: (props: INodeRendererProps) => ReactNode = ({
     const inheritProps = getNodeProps();
     const indentLevel = 15;
 
+    useEffect(() => {
+        console.log("Detecters");
+    }, []);
+
     const [contextMenuTarget, setContextMenuTarget] = useState<MouseEvent | null>(null);
     const onShowContextMenu = useCallback((e: RMouseEvent) => {
         setContextMenuTarget(e.nativeEvent);

@@ -1,3 +1,5 @@
+import {IContent} from "../IContentGetter";
+
 export type ITabsContentProps = {
-    content?: JSX.Element;
+    contents: (IContent & {selected: boolean})[];
 };

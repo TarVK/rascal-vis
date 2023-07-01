@@ -136,7 +136,13 @@ export const LayoutTabsPanel: FC<{
                 onDrop={onDropTab}
                 state={state}
             />
-            <components.TabsContent content={selectedContent?.content} />
+            <components.TabsContent
+                contents={orderedContents.map(({id, ...rest}) => ({
+                    id,
+                    selected: panel.selected == id,
+                    ...rest,
+                }))}
+            />
             <components.DropArea dragging={isDragging} onDrop={onDropSide} />
         </components.TabsContainer>
     );

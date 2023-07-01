@@ -17,11 +17,15 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
         const el = ref.current;
         if (!el) return;
 
+        let oldWidth = 0;
         function calculate() {
             const el = ref.current;
             if (!el) return;
 
             const {width} = el.getBoundingClientRect();
+            if (width == oldWidth || width == 0) return;
+            console.log("calculate", value, width, oldWidth);
+            oldWidth = width;
             const maxLength = width / pixelsPerChar;
             const highlightData = highlightFit(value, maxLength);
             // const highlightData = highlight(value, 2);
@@ -33,6 +37,7 @@ export const ValueHighlight: FC<{value: IVal | IEntry; className?: string}> = ({
         observer.observe(el);
         return () => observer.disconnect();
     }, [value]);
+
     return (
         <div
             className={className}

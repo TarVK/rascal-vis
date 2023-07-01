@@ -238,7 +238,7 @@ export class AppState {
         if (show) {
             const panelId = this.layoutState.getAllTabPanelIDs()[0];
             this.layoutState.openTab(panelId, panelState.getID());
-            console.log(panelId, panelState.getID());
+            this.layoutState.selectTab(panelId, panelState.getID());
         }
         return panelState;
     }
