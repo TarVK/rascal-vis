@@ -13,8 +13,9 @@ import React, {
 import {IValNode} from "../../_types/IValNode";
 import {IEntry, IVal} from "../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
-import {highlight} from "./highlight";
 import {IHoverHandlers} from "./_types/IHoverHandler";
+import {useHighlightCache} from "./HighlightCache";
+import {IHighlightCache} from "./_types/IHighlightCache";
 
 // Based on an in browser measurement in chrome
 const pixelsPerChar = 722 / 100;
@@ -24,41 +25,15 @@ export const ValueHighlight = forwardRef<
     {
         value: IVal | IEntry;
         className?: string;
-        onHover?: (value: IVal | null) => void;
+        minWidth?: number;
+        hoverHandlers?: IHoverHandlers | undefined;
         wrapElement?: (node: ReactNode) => ReactNode;
     }
->(({value, className, wrapElement = n => n, onHover}, ref) => {
-    // Manage the hover stack and invoking of the callback
-    const hoverHandlers = useMemo<IHoverHandlers | undefined>(() => {
-        if (!onHover) return undefined;
-
-        const hoverStack: IVal[] = [];
-        const map = new Map<number, {onEnter: () => void; onLeave: () => void}>();
-        return (value: IVal) => {
-            const handler = map.get(value.id);
-            if (handler) return handler;
-
-            const newHandler = {
-                onEnter: () => {
-                    hoverStack.push(value);
-                    onHover(value);
-                },
-                onLeave: () => {
-                    const index = hoverStack.indexOf(value);
-                    if (index == -1) return;
-                    hoverStack.splice(index, 1);
-                    const top = hoverStack[hoverStack.length - 1] ?? null;
-                    onHover(top);
-                },
-            };
-            map.set(value.id, newHandler);
-            return newHandler;
-        };
-    }, [value, onHover]);
-
+>(({value, className, wrapElement = n => n, hoverHandlers, minWidth}, ref) => {
     // Determine the content at the right size, using the highlight function
     const sizeRef = useRef<HTMLDivElement>(null);
     const [content, setContent] = useState<ReactNode>(null);
+    const highlight = useHighlightCache();
     useLayoutEffect(() => {
         const el = sizeRef.current;
         if (ref) {
@@ -72,9 +47,15 @@ export const ValueHighlight = forwardRef<
             const el = sizeRef.current;
             if (!el) return;
 
+            // Measure the width, and consider the min width during this
+            let oldWidth = el.style.width;
+            if (minWidth)
+                el.style.width = typeof minWidth == "number" ? minWidth + "px" : minWidth;
             const {width} = el.getBoundingClientRect();
+            if (minWidth) el.style.width = oldWidth;
             if (width == 0) return;
 
+            // Check if we need to adjust the highlighting
             const maxLength = width / pixelsPerChar;
             if (prevData) {
                 const inRange =
@@ -83,10 +64,21 @@ export const ValueHighlight = forwardRef<
                 if (inRange) return;
             }
 
-            const highlightData = highlightFit(value, maxLength, hoverHandlers);
+            // Perform the highlighting
+            const highlightData = highlightFit(
+                highlight,
+                value,
+                maxLength,
+                hoverHandlers
+            );
             // const highlightData = highlight(value, 2);
             prevData = highlightData;
             setContent(highlightData.fit.el);
+
+            // Set the width, if there's a min width
+            if (minWidth)
+                el.style.width =
+                    Math.min(minWidth, highlightData.fit.length * pixelsPerChar) + "px";
         }
         calculate();
 
@@ -107,16 +99,19 @@ export const ValueHighlight = forwardRef<
 
 /**
  * Highlights the given value, such that it has at most the number of specified characters
+ * @param highlight The highlight function to use
  * @param value The value to be highlighted
  * @param maxLength The maximum number of characters
+ * @param handler The mouse hover handlers
  * @returns The highlighting data that does fit, and the next data that doesn't fit
  */
 export function highlightFit(
+    highlight: IHighlightCache,
     value: IVal | IEntry,
     maxLength: number,
     handlers?: IHoverHandlers
 ): {fit: IHighlight; noFit: IHighlight | null} {
-    let prev = highlight(value, 1);
+    let prev = highlight(value, 1, handlers);
     for (let i = 2; i < 100; i++) {
         let newHighlight = highlight(value, i, handlers);
         if (!newHighlight.overflow) return {fit: newHighlight, noFit: null};

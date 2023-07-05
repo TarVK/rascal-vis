@@ -8,9 +8,12 @@ import {IValNode} from "../_types/IValNode";
  */
 export class PanelState {
     public readonly valueNodes: IValNode[];
+    protected valueMap = new Map<string | number, IValNode>();
     public readonly value: IVal | IEntry;
     protected id: string = uuid();
     protected closable = new Field<boolean>(true);
+
+    protected onRevealListeners: Set<(values: Set<IValNode>) => void> = new Set();
 
     protected visualize = new Field(false);
     protected name = new Field("");
@@ -19,6 +22,7 @@ export class PanelState {
     public constructor(valueNodes: IValNode[]) {
         this.valueNodes = valueNodes;
         this.value = valueNodes[1].value;
+        for (let node of this.valueNodes) this.valueMap.set(node.id, node);
     }
 
     public stateType = "default";
@@ -90,5 +94,38 @@ export class PanelState {
      */
     public setVisualized(visualized: boolean): void {
         this.visualize.set(visualized);
+    }
+
+    // Global interactions
+    /**
+     * Reveals the given value
+     * @param value The value to be revealed
+     */
+    public reveal(value: IVal | IEntry): void {
+        const nodes = new Set<IValNode>();
+        let added = new Set(this.valueNodes.filter(node => node.value == value));
+        while (added.size != 0) {
+            const newAdded = new Set<IValNode>();
+            for (let node of added) {
+                const parent =
+                    node.parent != null ? this.valueMap.get(node.parent) : null;
+                if (!parent || nodes.has(parent)) continue;
+                newAdded.add(parent);
+                nodes.add(parent);
+            }
+            added = newAdded;
+        }
+
+        for (let listener of this.onRevealListeners) listener(nodes);
+    }
+
+    /**
+     * Adds a reveal listener
+     * @param listener The listener to be invoked when a value is revealed
+     * @returns A function that can be used to remove the listener
+     */
+    public addOnReveal(listener: (value: Set<IValNode>) => void): () => void {
+        this.onRevealListeners.add(listener);
+        return () => this.onRevealListeners.delete(listener);
     }
 }

@@ -10,7 +10,9 @@ export const App: FC = () => {
     const state = usePersistentMemo(() => {
         const state = new AppState();
         state.setValueText(val);
-        // state.setValueText('range(105,<105, "">)');
+        // state.setValueText(
+        //     '{2,3,4,5,"hello why is this not working now? I really have no clue what the issue is here",3,4}'
+        // );
         return state;
     }, []);
 

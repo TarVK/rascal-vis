@@ -229,7 +229,7 @@ export class AppState {
                 name: "",
                 children: [value.id],
                 parent: null,
-                value: {type: "boolean", id: -1, value: false},
+                value: {type: "boolean", id: -1, value: false}, // Fake root value
                 range: 0,
             },
             value,
@@ -250,7 +250,9 @@ export class AppState {
      * Reveals the value in the UI
      * @param value The value to be revealed
      */
-    public reveal(value: IVal): void {}
+    public reveal(value: IVal | IEntry): void {
+        Object.values(this.panels.get()).forEach(panel => panel.reveal(value));
+    }
 
     /**
      * Focuses on the specified value in the UI

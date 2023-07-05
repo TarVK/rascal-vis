@@ -34,6 +34,8 @@ export const TabTarget: FC<{selected: boolean; element: HTMLElement}> = ({
                 justifyItems: "stretch",
                 "&>div": {
                     flexGrow: 1,
+                    width: "100%",
+                    minWidth: 0,
                 },
             })}
         />

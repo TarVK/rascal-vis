@@ -1,5 +1,5 @@
-- [ ] Add min-width for text panel
-- [ ] Add text panel overflow
+- [x] Add min-width for text panel
+- [/] Add focus
 - [ ] Add value search
 - [ ] Add tab naming+menu
 - [ ] Add settings
@@ -16,3 +16,16 @@
     - [ ] grammar constructor
 - [ ] Add graph panel
 - [ ] Add grammar panel
+- [ ] Add keyboard controls
+    - [ ] Copy
+    - [ ] Toggle select
+    - [ ] Focus
+
+
+
+## Settings:
+- [ ] Disable hover
+- Text view:
+    - [ ] Min value width
+    - [ ] Min show characters count
+    - [ ] Fixed depth

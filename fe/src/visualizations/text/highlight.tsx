@@ -24,7 +24,7 @@ export function highlight(
             length: text.length,
             el: (
                 <span
-                    className={type + (hasId ? " " + id : "")}
+                    className={type}
                     id={id + ""}
                     onMouseEnter={hasId ? handlers?.onEnter : undefined}
                     onMouseLeave={hasId ? handlers?.onLeave : undefined}>
@@ -36,7 +36,14 @@ export function highlight(
     };
     const join = (nodes: IHighlight[], sep: IHighlight): IHighlight[] =>
         nodes.flatMap(node => [sep, node]).slice(1);
-    const collapse = () => ({...baseSymbol("...", "collapse"), overflow: true});
+    const collapse = (ided: boolean = true) => ({
+        ...baseSymbol(
+            "...",
+            "collapse" + (ided ? " value" : ""),
+            ided ? value.id : undefined
+        ),
+        overflow: true,
+    });
     const handlers = "key" in value ? undefined : hoverHandler?.(value);
 
     if ("key" in value) {
@@ -149,7 +156,8 @@ export function highlight(
         const {length: closeLength, el: closeEl} = baseSymbol(brackets.c, "symbol");
 
         if (remainingDepth == 0) {
-            const {length: collapseLength, el: collapseEl} = collapse();
+            // Still show the size and type, instead of only dots
+            const {length: collapseLength, el: collapseEl} = collapse(false);
             return {
                 length: countLength + openLength + collapseLength + closeLength,
                 el: (
