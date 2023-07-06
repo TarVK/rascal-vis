@@ -103,13 +103,20 @@ export class AppState {
     /**
      * Adds a panel to the app
      * @param panel The panel to be added
+     * @param show Whether the panel should be opened in a new tab
      */
-    public addPanel(panel: PanelState): void {
+    public addPanel(panel: PanelState, show: boolean = true): void {
         const current = this.panels.get();
         this.panels.set({
             ...current,
             [panel.getID()]: panel,
         });
+
+        if (show) {
+            const panelId = this.layoutState.getAllTabPanelIDs()[0];
+            this.layoutState.openTab(panelId, panel.getID());
+            this.layoutState.selectTab(panelId, panel.getID());
+        }
     }
 
     /**
@@ -219,7 +226,7 @@ export class AppState {
         const nodes = this.valueNodes.get();
         if (!nodes) return null;
 
-        const index = nodes.indexOf(value);
+        const index = nodes.findIndex(({id}) => value.id == id);
         if (index == -1) return null;
 
         const childNodes = nodes.slice(index + 1, index + 1 + value.range);
@@ -236,13 +243,8 @@ export class AppState {
             ...childNodes,
         ];
         const panelState = new PanelState(allNodes);
-        this.addPanel(panelState);
+        this.addPanel(panelState, show);
         panelState.setName(getName(value.value));
-        if (show) {
-            const panelId = this.layoutState.getAllTabPanelIDs()[0];
-            this.layoutState.openTab(panelId, panelState.getID());
-            this.layoutState.selectTab(panelId, panelState.getID());
-        }
         return panelState;
     }
 
@@ -251,7 +253,19 @@ export class AppState {
      * @param value The value to be revealed
      */
     public reveal(value: IVal | IEntry): void {
-        Object.values(this.panels.get()).forEach(panel => panel.reveal(value));
+        const nodes = this.valueNodesMap.get()?.get(value);
+        if (!nodes) return;
+        this.revealNodes(nodes);
+    }
+
+    /**
+     * Reveals the value in the UI
+     * @param value The value to be revealed
+     */
+    public revealNodes(nodes: IValNode[]): void {
+        const nodeSet = new Set<IValNode>();
+        nodes.forEach(node => nodeSet.add(node));
+        Object.values(this.panels.get()).forEach(panel => panel.reveal(nodeSet));
     }
 
     /**

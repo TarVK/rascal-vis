@@ -8,6 +8,8 @@ import {IValNode} from "../_types/IValNode";
  */
 export class PanelState {
     public readonly valueNodes: IValNode[];
+    protected valueNodesSet: Set<IValNode> = new Set();
+
     protected valueMap = new Map<string | number, IValNode>();
     public readonly value: IVal | IEntry;
     protected id: string = uuid();
@@ -22,7 +24,10 @@ export class PanelState {
     public constructor(valueNodes: IValNode[]) {
         this.valueNodes = valueNodes;
         this.value = valueNodes[1].value;
-        for (let node of this.valueNodes) this.valueMap.set(node.id, node);
+        for (let node of this.valueNodes) {
+            this.valueMap.set(node.id, node);
+            this.valueNodesSet.add(node);
+        }
     }
 
     public stateType = "default";
@@ -101,9 +106,9 @@ export class PanelState {
      * Reveals the given value
      * @param value The value to be revealed
      */
-    public reveal(value: IVal | IEntry): void {
-        const nodes = new Set<IValNode>();
-        let added = new Set(this.valueNodes.filter(node => node.value == value));
+    public reveal(nodes: Set<IValNode>): void {
+        let out = new Set<IValNode>();
+        let added = new Set([...nodes].filter(node => this.valueNodesSet.has(node)));
         while (added.size != 0) {
             const newAdded = new Set<IValNode>();
             for (let node of added) {
@@ -111,20 +116,20 @@ export class PanelState {
                     node.parent != null ? this.valueMap.get(node.parent) : null;
                 if (!parent || nodes.has(parent)) continue;
                 newAdded.add(parent);
-                nodes.add(parent);
+                out.add(parent);
             }
             added = newAdded;
         }
 
-        for (let listener of this.onRevealListeners) listener(nodes);
+        for (let listener of this.onRevealListeners) listener(out);
     }
 
     /**
-     * Adds a reveal listener
+     * Adds a listener to listen for what nodes to be expanded (to handle reveals)
      * @param listener The listener to be invoked when a value is revealed
      * @returns A function that can be used to remove the listener
      */
-    public addOnReveal(listener: (value: Set<IValNode>) => void): () => void {
+    public addExpandListener(listener: (value: Set<IValNode>) => void): () => void {
         this.onRevealListeners.add(listener);
         return () => this.onRevealListeners.delete(listener);
     }

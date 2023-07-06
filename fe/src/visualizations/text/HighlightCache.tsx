@@ -1,4 +1,14 @@
-import React, {FC, createContext, useContext, useMemo, memo} from "react";
+import React, {
+    FC,
+    createContext,
+    useContext,
+    useMemo,
+    memo,
+    useState,
+    useRef,
+    useLayoutEffect,
+    RefObject,
+} from "react";
 import {IHighlightCache} from "./_types/IHighlightCache";
 import {highlight} from "./highlight";
 import {IHighlight} from "./_types/IHighlight";
@@ -44,4 +54,21 @@ export const HighlightCache: FC<{
             {children}
         </highlightCacheContext.Provider>
     );
+};
+
+export const ResettingHighlighCache: FC<{sizeRef: RefObject<HTMLDivElement>}> = ({
+    children,
+    sizeRef,
+}) => {
+    const [highlightCacheId, setHighlightCacheId] = useState(0);
+    useLayoutEffect(() => {
+        const el = sizeRef.current;
+        if (!el) return;
+
+        const observer = new ResizeObserver(() => setHighlightCacheId(id => id + 1));
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    return <HighlightCache cacheKey={highlightCacheId}>{children}</HighlightCache>;
 };

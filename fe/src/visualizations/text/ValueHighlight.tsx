@@ -50,9 +50,10 @@ export const ValueHighlight = forwardRef<
             // Measure the width, and consider the min width during this
             let oldWidth = el.style.width;
             if (minWidth)
-                el.style.width = typeof minWidth == "number" ? minWidth + "px" : minWidth;
+                el.style.minWidth = el.style.width =
+                    typeof minWidth == "number" ? minWidth + "px" : minWidth;
             const {width} = el.getBoundingClientRect();
-            if (minWidth) el.style.width = oldWidth;
+            if (minWidth) el.style.minWidth = el.style.width = oldWidth;
             if (width == 0) return;
 
             // Check if we need to adjust the highlighting
@@ -77,7 +78,7 @@ export const ValueHighlight = forwardRef<
 
             // Set the width, if there's a min width
             if (minWidth)
-                el.style.width =
+                el.style.minWidth = el.style.width =
                     Math.min(minWidth, highlightData.fit.length * pixelsPerChar) + "px";
         }
         calculate();
@@ -112,10 +113,10 @@ export function highlightFit(
     handlers?: IHoverHandlers
 ): {fit: IHighlight; noFit: IHighlight | null} {
     let prev = highlight(value, 1, handlers);
-    for (let i = 2; i < 100; i++) {
+    for (let i = 2; i < 10; i++) {
         let newHighlight = highlight(value, i, handlers);
-        if (!newHighlight.overflow) return {fit: newHighlight, noFit: null};
         if (newHighlight.length > maxLength) return {fit: prev, noFit: newHighlight};
+        if (!newHighlight.overflow) return {fit: newHighlight, noFit: null};
         prev = newHighlight;
     }
     return {fit: prev, noFit: null};

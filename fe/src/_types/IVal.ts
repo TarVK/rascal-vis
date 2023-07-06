@@ -22,6 +22,23 @@ export type IVal =
     | IBool
     | ILoc;
 
+export type IValPlainPattern =
+    | IMapPlainPattern
+    | ITuplePlainPattern
+    | IConstrPlainPattern
+    | INodePlainPattern
+    | IListPlainPattern
+    | ISetPlainPattern
+    | IStringPlain
+    | INumPlain
+    | IBoolPlain
+    | ILocPlain
+    | IAny
+    | IRepeat
+    | ITextPattern
+    | IRegex
+    | IOr;
+
 // Map
 export type IMapPlain = {
     type: "map";
@@ -41,16 +58,37 @@ export type IEntry = {
     key: IVal;
     value: IVal;
 };
+export type IMapPlainPattern = {
+    type: "map";
+    children: IEntryPlainPattern[];
+};
+export type IEntryPlainPattern = {
+    key: IValPlainPattern;
+    value: IValPlainPattern;
+};
 
 // Constructor/node
+export type IConstr = {
+    type: "constr";
+    id: number;
+    name: string;
+    children: IVal[];
+    namedChildren: {name: string; value: IVal}[];
+};
 export type IConstrPlain = {
     type: "constr";
     name: string;
     children: IValPlain[];
     namedChildren: {name: string; value: IValPlain}[];
 };
-export type IConstr = {
+export type IConstrPlainPattern = {
     type: "constr";
+    name: string | IRegex | ITextPattern;
+    children: IValPlainPattern[];
+    namedChildren: {name: string | IRegex | ITextPattern; value: IValPlainPattern}[];
+};
+export type INode = {
+    type: "node";
     id: number;
     name: string;
     children: IVal[];
@@ -62,21 +100,29 @@ export type INodePlain = {
     children: IValPlain[];
     namedChildren: {name: string; value: IValPlain}[];
 };
-export type INode = {
+export type INodePlainPattern = {
     type: "node";
-    id: number;
     name: string;
-    children: IVal[];
-    namedChildren: {name: string; value: IVal}[];
+    children: IValPlainPattern[];
+    namedChildren: {name: string; value: IValPlainPattern}[];
 };
 
 // Other collections
+export type IList = {
+    type: "list";
+    id: number;
+    children: IVal[];
+};
 export type IListPlain = {
     type: "list";
     children: IValPlain[];
 };
-export type IList = {
+export type IListPlainPattern = {
     type: "list";
+    children: IValPlainPattern[];
+};
+export type ISet = {
+    type: "set";
     id: number;
     children: IVal[];
 };
@@ -84,8 +130,12 @@ export type ISetPlain = {
     type: "set";
     children: IValPlain[];
 };
-export type ISet = {
+export type ISetPlainPattern = {
     type: "set";
+    children: IValPlainPattern[];
+};
+export type ITuple = {
+    type: "tuple";
     id: number;
     children: IVal[];
 };
@@ -93,21 +143,22 @@ export type ITuplePlain = {
     type: "tuple";
     children: IValPlain[];
 };
-export type ITuple = {
+export type ITuplePlainPattern = {
     type: "tuple";
-    id: number;
-    children: IVal[];
+    children: IValPlainPattern[];
 };
 
 // Base values
 export type IStringPlain = {
     type: "string";
     value: (string | {type: "escaped"; text: string})[];
+    valuePlain: string;
 };
 export type IString = {
     type: "string";
     id: number;
     value: (string | {type: "escaped"; text: string})[];
+    valuePlain: string;
 };
 export type INumPlain = {
     type: "number";
@@ -146,3 +197,15 @@ export type ILoc = {
         end: {line: number; column: number};
     };
 };
+
+// Patterns
+export type IAny = {type: "any"};
+export type IRepeat = {type: "repeat"; value: IValPlainPattern};
+
+export type IRegex = {type: "regex"; regex: RegExp};
+export type ITextPattern = {
+    type: "textPattern";
+    value: (string | {type: "escaped"; text: string})[];
+    valuePlain: string;
+};
+export type IOr = {type: "or"; options: [IValPlainPattern, ...IValPlainPattern[]]};

@@ -31,7 +31,7 @@ export function highlight(
                     {text}
                 </span>
             ),
-            overflow: true,
+            overflow: false,
         };
     };
     const join = (nodes: IHighlight[], sep: IHighlight): IHighlight[] =>
@@ -235,7 +235,13 @@ export function highlight(
             value.id
         );
     } else {
-        if (remainingDepth == 0) return collapse();
-        return baseSymbol(value.value + "", "value " + value.type, value.id);
+        const val = baseSymbol(value.value + "", "value " + value.type, value.id);
+        if (remainingDepth == 0) {
+            const c = collapse();
+            if (val.length < c.length) return val;
+            return c;
+        }
+
+        return val;
     }
 }

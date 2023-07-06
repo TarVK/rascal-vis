@@ -1,5 +1,6 @@
 import {INode} from "react-accessible-treeview";
 import {IEntry, IVal} from "./IVal";
+import {IContextualMenuItem} from "@fluentui/react";
 
 /** Individual flat node data to represent a value layer */
 export type IValNode = INode & {
@@ -9,6 +10,13 @@ export type IValNode = INode & {
     range: number;
     /** The node's role in relation to its parent */
     role?: INodeRole | null;
+    /** Additional controls to show */
+    controls?: {
+        context: IContextualMenuItem[];
+        inline: JSX.Element;
+    };
+    /** Whether this is a special node and shouldn't be openable in a new tab */
+    notOpenable?: boolean;
 };
 
 export type INodeRole =
