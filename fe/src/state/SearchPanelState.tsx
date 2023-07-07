@@ -1,6 +1,6 @@
 import React, {FC} from "react";
 import {DataCacher, Field, IDataHook} from "model-react";
-import {PanelState} from "./PanelState";
+import {ValuePanelState} from "./ValuePanelState";
 import {IValNode} from "../_types/IValNode";
 import {valuePattern} from "../parse/parser";
 import {intersperseDynamic} from "../utils/intersperse";
@@ -9,6 +9,10 @@ import {matchesPattern} from "../parse/matchesPattern";
 import {useState} from "react-resizable-panels/dist/declarations/src/vendor/react";
 import {Link} from "@fluentui/react";
 import {useAppState} from "./StateContext";
+import {PanelState} from "./PanelState";
+import {AppState} from "./AppState";
+import {IValMap} from "../_types/IValMap";
+import {ISearchPanelSerialization} from "./_types/ISearchPanelSerialization";
 
 /**
  * The state for a search panel
@@ -18,6 +22,19 @@ export class SearchPanelState extends PanelState {
 
     protected type = new Field<"text" | "value">("text");
     protected search = new Field("");
+    protected state: AppState;
+
+    protected valueNodes = new DataCacher(h => this.state.valueNodes.get(h) ?? []);
+    protected valueMap = new DataCacher(h => {
+        const out = new Map<string | number, IValNode>();
+        for (let node of this.valueNodes.get(h)) out.set(node.id, node);
+        return out;
+    });
+
+    public constructor(state: AppState) {
+        super("search");
+        this.state = state;
+    }
 
     protected matches = new DataCacher<IValNode[] | {error: string}>(h => {
         const textSearch = this.type.get(h) == "text";
@@ -27,7 +44,7 @@ export class SearchPanelState extends PanelState {
         if (textSearch) {
             try {
                 const search = searchText;
-                return this.valueNodes.filter(result => {
+                return this.valueNodes.get(h).filter(result => {
                     if ("key" in result.value) return false;
                     let text: string | null = null;
                     if (result.value.type == "string") text = result.value.valuePlain;
@@ -51,9 +68,11 @@ export class SearchPanelState extends PanelState {
                 };
 
             const pattern = parseResult.value;
-            return this.valueNodes.filter(result =>
-                "key" in result.value ? false : matchesPattern(result.value, pattern)
-            );
+            return this.valueNodes
+                .get(h)
+                .filter(result =>
+                    "key" in result.value ? false : matchesPattern(result.value, pattern)
+                );
         }
     });
 
@@ -106,7 +125,7 @@ export class SearchPanelState extends PanelState {
             let topNode = match;
             for (let i = 0; i < parentCount; i++) {
                 const parent =
-                    topNode.parent != null && this.valueMap.get(topNode.parent);
+                    topNode.parent != null && this.valueMap.get(h).get(topNode.parent);
                 if (!parent || parent.parent == null) break;
 
                 const pId = id--;
@@ -128,7 +147,7 @@ export class SearchPanelState extends PanelState {
             let pathNode = topNode;
             for (let i = 0; i < pathCount; i++) {
                 const parent =
-                    pathNode.parent != null && this.valueMap.get(pathNode.parent);
+                    pathNode.parent != null && this.valueMap.get(h).get(pathNode.parent);
                 if (!parent || parent.parent == null) break;
 
                 if (pathNode.role) {
@@ -159,9 +178,11 @@ export class SearchPanelState extends PanelState {
             group.node.children.push(topNodeReparented.id);
 
             // Add all children
-            const index = this.valueNodes.indexOf(match);
+            const index = this.valueNodes.get(h).indexOf(match);
             if (index != -1)
-                out.push(...this.valueNodes.slice(index + 1, index + 1 + match.range));
+                out.push(
+                    ...this.valueNodes.get(h).slice(index + 1, index + 1 + match.range)
+                );
         }
 
         return out;
@@ -217,6 +238,30 @@ export class SearchPanelState extends PanelState {
      */
     public getMatchTree(hook?: IDataHook): IValNode[] | null {
         return this.matchTree.get(hook);
+    }
+
+    // Serialization
+    /**
+     * Serializes the data of this panel
+     * @returns The serialized state data
+     */
+    public serialize(): ISearchPanelSerialization {
+        return {
+            ...super.serialize(),
+            type: "search",
+            search: this.search.get(),
+            searchType: this.type.get(),
+        };
+    }
+
+    /**
+     * Deserializes the data into this panel
+     * @param data The data to be loaded
+     */
+    public deserialize(data: ISearchPanelSerialization): void {
+        super.deserialize(data);
+        this.search.set(data.search);
+        this.type.set(data.searchType);
     }
 }
 

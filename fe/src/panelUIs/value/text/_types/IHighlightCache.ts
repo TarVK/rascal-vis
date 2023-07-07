@@ -1,5 +1,5 @@
 import {FC} from "react";
-import {IEntry, IVal} from "../../../_types/IVal";
+import {IEntry, IVal} from "../../../../_types/IVal";
 import {IHighlight} from "./IHighlight";
 import {IHoverHandlers} from "./IHoverHandler";
 

@@ -12,7 +12,7 @@ import React, {
 import {IHighlightCache} from "./_types/IHighlightCache";
 import {highlight} from "./highlight";
 import {IHighlight} from "./_types/IHighlight";
-import {IEntry, IVal} from "../../_types/IVal";
+import {IEntry, IVal} from "../../../_types/IVal";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 
 export const highlightCacheContext = createContext<IHighlightCache>(

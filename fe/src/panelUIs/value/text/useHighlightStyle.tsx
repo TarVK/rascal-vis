@@ -1,7 +1,7 @@
 import {css} from "@emotion/css";
 import {useTheme} from "@fluentui/react";
 import {highlightTheme} from "./highlightTheme";
-import {AppState} from "../../state/AppState";
+import {AppState} from "../../../state/AppState";
 import {useDataHook} from "model-react";
 
 export function useHighlightStyle(state: AppState) {

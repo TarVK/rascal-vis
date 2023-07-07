@@ -17,21 +17,21 @@ import TreeView, {
     INodeRendererProps,
     flattenTree,
 } from "react-accessible-treeview";
-import {PanelState} from "../../state/PanelState";
-import {PanelContainer} from "../../components/PanelContainer";
-import {usePersistentMemo} from "../../utils/usePersistentMemo";
+import {ValuePanelState} from "../../../state/ValuePanelState";
+import {PanelContainer} from "../../../components/PanelContainer";
+import {usePersistentMemo} from "../../../utils/usePersistentMemo";
 import {css} from "@emotion/css";
-import {INodeRole, IValNode} from "../../_types/IValNode";
+import {INodeRole, IValNode} from "../../../_types/IValNode";
 import {ValueHighlight} from "./ValueHighlight";
 import {ContextualMenu, FontIcon, IContextualMenuItem, useTheme} from "@fluentui/react";
-import {ASTtoText} from "../../parse/ASTtoText";
-import {copy} from "../../utils/copy";
-import {StateContext, useAppState} from "../../state/StateContext";
-import {AppState} from "../../state/AppState";
-import {useDragStart} from "../../utils/useDragStart";
-import {getName} from "../../parse/getName";
+import {ASTtoText} from "../../../parse/ASTtoText";
+import {copy} from "../../../utils/copy";
+import {StateContext, useAppState} from "../../../state/StateContext";
+import {AppState} from "../../../state/AppState";
+import {useDragStart} from "../../../utils/useDragStart";
+import {getName} from "../../../parse/getName";
 import {useDataHook} from "model-react";
-import {IVal} from "../../_types/IVal";
+import {IVal} from "../../../_types/IVal";
 import {HighlightCache, ResettingHighlighCache} from "./HighlightCache";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 import {HoverContextProvider, useHoverHandlers} from "./HoverContext";
@@ -39,8 +39,12 @@ import {useTreeNodeStyle} from "./useTreeNodeStyle";
 import {useHighlightStyle} from "./useHighlightStyle";
 import {useValueDrag} from "./useValueDrag";
 
-export const TextPanel: FC<{panel: PanelState; state: AppState}> = ({panel, state}) => {
-    const nodes = panel.valueNodes;
+export const TextPanel: FC<{panel: ValuePanelState; state: AppState}> = ({
+    panel,
+    state,
+}) => {
+    const [h] = useDataHook();
+    const nodes = panel.getValueNodes(h);
 
     const [treeStyleClass, rootRef] = useTreeNodeStyle();
     const highlightStyleClass = useHighlightStyle(state);
@@ -55,6 +59,8 @@ export const TextPanel: FC<{panel: PanelState; state: AppState}> = ({panel, stat
             ),
         [panel]
     );
+
+    if (nodes.length == 0) return <PanelContainer>No value specified</PanelContainer>;
 
     return (
         <PanelContainer

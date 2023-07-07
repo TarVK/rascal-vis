@@ -16,12 +16,12 @@ import {
 } from "@fluentui/react";
 import {useId} from "@fluentui/react-hooks";
 import {useDataHook} from "model-react";
-import {HoverContextProvider} from "../text/HoverContext";
-import {ResettingHighlighCache} from "../text/HighlightCache";
+import {HoverContextProvider} from "../value/text/HoverContext";
+import {ResettingHighlighCache} from "../value/text/HighlightCache";
 import TreeView from "react-accessible-treeview";
-import {useTreeNodeStyle} from "../text/useTreeNodeStyle";
-import {useHighlightStyle} from "../text/useHighlightStyle";
-import {ValueNode} from "../text/TextPanel";
+import {useTreeNodeStyle} from "../value/text/useTreeNodeStyle";
+import {useHighlightStyle} from "../value/text/useHighlightStyle";
+import {ValueNode} from "../value/text/TextPanel";
 import {css} from "@emotion/css";
 import {useScrollbarStyle} from "../../utils/useScrollbarStyle";
 
@@ -30,7 +30,11 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
     state,
 }) => {
     const [h] = useDataHook();
-    const [search, setSearchText] = useState("");
+    const stateSearchText = panel.getSearchText(h);
+    const [search, setSearchText] = useState(stateSearchText);
+    useEffect(() => {
+        setSearchText(stateSearchText);
+    }, [stateSearchText]);
     const tooltipId = useId("pattern");
     const setSearch = useCallback(() => {
         if (panel.getSearchText() != search) panel.setSearchText(search);
@@ -75,7 +79,7 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                 display: "flex",
                 flexDirection: "column",
             })}`}>
-            <div style={{width: "min(100%, 300px)", marginBottom: 10}}>
+            <div style={{width: "min(100%, 500px)", marginBottom: 10}}>
                 <div style={{display: "flex"}}>
                     <SearchBox
                         styles={{root: {flexGrow: 1, paddingRight: 32}}}

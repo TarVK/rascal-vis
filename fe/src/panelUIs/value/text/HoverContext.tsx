@@ -1,6 +1,6 @@
 import React, {FC, useCallback, createContext, useMemo, useContext} from "react";
-import {AppState} from "../../state/AppState";
-import {IVal} from "../../_types/IVal";
+import {AppState} from "../../../state/AppState";
+import {IVal} from "../../../_types/IVal";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 
 export const HoverContextProvider: FC<{state: AppState}> = ({state, children}) => {

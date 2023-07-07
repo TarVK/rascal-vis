@@ -97,7 +97,7 @@ export class LayoutState {
      * @param hook The hook to subscribe to changes
      * @returns All the opened tab panels
      */
-    public getAllTabPanelIDs(hook?: IDataHook): string[] {
+    public getAllTabPanels(hook?: IDataHook): IPanelTabsState[] {
         return getStateTabPanels(this.layout.get(hook));
     }
 
@@ -181,13 +181,20 @@ export class LayoutState {
      * Adds a new panel to the layout
      * @param nextToId The id of the panel to add the panel next to
      * @param side The side to add the panel to
+     * @param size The fraction of the size to use, relative to the average size of panels in its parent
+     * @param id The id of the new panel, or undefined to generate
      * @returns The id of the created panel
      */
-    public addPanel(nextToId: string, side: IDropPanelSplitSide): string | null {
+    public addPanel(
+        nextToId: string,
+        side: IDropPanelSplitSide,
+        size: number = 1,
+        id?: string
+    ): string | null {
         let out: string | null = null;
         this.updateLayout(layout => {
             const currentLayout = updateDefaultWeights(layout);
-            const [newState, newId] = addPanel(currentLayout, nextToId, side);
+            const [newState, newId] = addPanel(currentLayout, nextToId, side, size, id);
             if (newId != null) {
                 out = newId;
                 return newState;
@@ -381,10 +388,10 @@ export function panelDataToState(data: IPanelData): IPanelState {
  * @param state The state to get the content ids from
  * @returns The content ids
  */
-export function getStateTabPanels(state: IPanelState): string[] {
+export function getStateTabPanels(state: IPanelState): IPanelTabsState[] {
     if (state.type == "split")
         return state.panels.flatMap(panel => getStateTabPanels(panel.content));
-    return [state.id];
+    return [state];
 }
 
 /**
@@ -532,20 +539,24 @@ export function removePanel(state: IPanelState, panelId: string): IPanelState | 
  * @param state The state to modify
  * @param nextToId The id of the panel to open the panel next to
  * @param side The side of the panel to open the panel next to
+ * @param size The size fraction to take for this new panel relative to an equal distribution
+ * @param id The id of the new panel, or undefined to generate
  */
 export function addPanel(
     state: IPanelState,
     nextToId: string,
-    side: IDropPanelSplitSide
+    side: IDropPanelSplitSide,
+    size: number = 1,
+    id?: string
 ): [IPanelState, string | null] {
     const axis = side == "north" || side == "south" ? "vertical" : "horizontal";
 
     if (nextToId == state.id) {
         // Add a new split
-        const newId = uuid();
+        const newId = id ?? uuid();
         const after = side == "east" || side == "south";
         const newTabs: IPanelSplitStatePanel = {
-            defaultWeight: 50,
+            defaultWeight: size * 50,
             content: {
                 type: "tabs",
                 id: newId,
@@ -559,8 +570,8 @@ export function addPanel(
                 direction: axis,
                 handle: {current: null},
                 panels: after
-                    ? [{defaultWeight: 50, content: state}, newTabs]
-                    : [newTabs, {defaultWeight: 50, content: state}],
+                    ? [{defaultWeight: 100 - size * 50, content: state}, newTabs]
+                    : [newTabs, {defaultWeight: 100 - size * 50, content: state}],
             },
             newId,
         ];
@@ -576,10 +587,11 @@ export function addPanel(
                 const averageWeight =
                     state.panels.reduce((v, {defaultWeight}) => v + defaultWeight, 0) /
                     state.panels.length;
-                const adjustment = 100 / (100 + averageWeight);
-                const newId = uuid();
+                const newWeight = averageWeight * size;
+                const adjustment = 100 / (100 + newWeight);
+                const newId = id ?? uuid();
                 const newPanel: IPanelSplitStatePanel = {
-                    defaultWeight: adjustment * averageWeight,
+                    defaultWeight: adjustment * newWeight,
                     content: {
                         type: "tabs",
                         id: newId,
@@ -608,7 +620,7 @@ export function addPanel(
 
         // Try to add the new panel down the tree
         const newPanels = state.panels.map(({defaultWeight, content}) => {
-            const [result, newId] = addPanel(content, nextToId, side);
+            const [result, newId] = addPanel(content, nextToId, side, size, id);
             return [{defaultWeight, content: result}, newId] as const;
         });
         const newId = newPanels.find(([, newId]) => newId != null)?.[1] ?? null;

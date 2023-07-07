@@ -5,7 +5,7 @@ import {value} from "../parse/parser";
 import {Failure, Result} from "parsimmon";
 import {dataAddress} from "../dataAddress";
 import {fixReferences} from "../parse/fixReferences";
-import {PanelState} from "./PanelState";
+import {ValuePanelState} from "./ValuePanelState";
 import {LayoutState} from "../layout/LayoutState";
 import {IContent} from "../layout/_types/IContentGetter";
 import {IPanelComponents} from "../_types/IPanelComponents";
@@ -14,6 +14,10 @@ import {IValNode} from "../_types/IValNode";
 import {IValMap} from "../_types/IValMap";
 import {INode} from "react-accessible-treeview";
 import {getName} from "../parse/getName";
+import {PanelState} from "./PanelState";
+import {SpecialTabsState} from "./SpecialTabsState";
+import {ISettings} from "@fluentui/react";
+import {TDeepPartial} from "./_types/TDeepPartial";
 
 /**
  * Representing all application state data
@@ -28,6 +32,12 @@ export class AppState {
         if (text == null) return null;
         return value.parse(text);
     });
+
+    public specialTabs: SpecialTabsState;
+
+    public constructor() {
+        this.specialTabs = new SpecialTabsState(this);
+    }
 
     /**
      * A parse error, if any mistakes in parsing occurred (shouldn't happen, but maybe if we have implementation mistakes)
@@ -88,12 +98,12 @@ export class AppState {
     public setValueText(text: string): void {
         this.valueText.set(text);
         const valueNodes = this.valueNodes.get();
-        if (valueNodes && valueNodes.length > 0) {
-            const basePanel = this.openNode(valueNodes[0]);
-            if (!basePanel) return;
-            basePanel.setCanClose(false);
-            basePanel.setName("Root");
-        }
+        // if (valueNodes && valueNodes.length > 0) {
+        //     const basePanel = this.openNode(valueNodes[0]);
+        //     if (!basePanel) return;
+        //     basePanel.setCanClose(false);
+        //     basePanel.setName("Root");
+        // }
     }
 
     // Layout data
@@ -112,11 +122,17 @@ export class AppState {
             [panel.getID()]: panel,
         });
 
-        if (show) {
-            const panelId = this.layoutState.getAllTabPanelIDs()[0];
-            this.layoutState.openTab(panelId, panel.getID());
-            this.layoutState.selectTab(panelId, panel.getID());
-        }
+        if (show) this.showPanel(panel);
+    }
+
+    /**
+     * Shows the given panel
+     * @param panel The panel to be shown
+     */
+    public showPanel(panel: PanelState) {
+        const panelId = this.layoutState.getAllTabPanels()[0].id;
+        this.layoutState.openTab(panelId, panel.getID());
+        this.layoutState.selectTab(panelId, panel.getID());
     }
 
     /**
@@ -139,6 +155,15 @@ export class AppState {
                 Object.entries(this.panels.get()).filter(([key]) => ids.includes(key))
             )
         );
+    }
+
+    /**
+     * Retrieves all the currently opened panels
+     * @param hook The hook to subscribe to changes
+     * @returns The panel for the given ID
+     */
+    public getPanels(hook?: IDataHook): PanelState[] {
+        return Object.values(this.panels.get(hook));
     }
 
     /**
@@ -206,7 +231,7 @@ export class AppState {
      * @param show Whether to show the new tab
      * @returns The state of the opened tab
      */
-    public open(value: IVal, show: boolean = true): PanelState | null {
+    public open(value: IVal, show: boolean = true): ValuePanelState | null {
         const map = this.valueNodesMap.get();
         if (!map) return null;
 
@@ -222,7 +247,7 @@ export class AppState {
      * @param show Whether to show the new tab
      * @returns The state of the opened tab, or null if failed
      */
-    public openNode(value: IValNode, show: boolean = true): PanelState | null {
+    public openNode(value: IValNode, show: boolean = true): ValuePanelState | null {
         const nodes = this.valueNodes.get();
         if (!nodes) return null;
 
@@ -242,7 +267,7 @@ export class AppState {
             value,
             ...childNodes,
         ];
-        const panelState = new PanelState(allNodes);
+        const panelState = new ValuePanelState(allNodes);
         this.addPanel(panelState, show);
         panelState.setName(getName(value.value));
         return panelState;
@@ -265,7 +290,17 @@ export class AppState {
     public revealNodes(nodes: IValNode[]): void {
         const nodeSet = new Set<IValNode>();
         nodes.forEach(node => nodeSet.add(node));
-        Object.values(this.panels.get()).forEach(panel => panel.reveal(nodeSet));
+        const tabContainers = this.layoutState.getAllTabPanels();
+        Object.values(this.panels.get()).forEach(panel => {
+            if (!(panel instanceof ValuePanelState)) return;
+            if (panel.reveal(nodeSet)) {
+                const container = tabContainers.find(c =>
+                    c.tabs.find(tab => tab.id == panel.getID())
+                );
+                if (!container) return;
+                this.layoutState.selectTab(container.id, panel.getID());
+            }
+        });
     }
 
     /**
@@ -306,5 +341,37 @@ export class AppState {
      */
     public getHoverHighlight(hook?: IDataHook): IVal | null {
         return this.hoverHighlighting.get(hook);
+    }
+
+    // Settings
+    /**
+     * Retrieves the settings
+     * @param hook The hook to subscribe to changes
+     * @returns The current settings
+     */
+    public getSettings(hook?: IDataHook): ISettings {
+        return this.specialTabs.settings.getSettings(hook);
+    }
+
+    /**
+     * Updates the settings of the application
+     * @param settings The settings of the application
+     */
+    public updateSettings(settings: TDeepPartial<ISettings>): void {
+        this.specialTabs.settings.updateSettings(settings);
+    }
+
+    /**
+     * Loads the profile data from disk
+     */
+    public loadProfilesData(): void {
+        this.specialTabs.settings.loadProfilesData();
+    }
+
+    /**
+     * Saves the current profile to disk
+     */
+    public saveProfile(): void {
+        this.specialTabs.settings.saveProfile();
     }
 }

@@ -7,7 +7,7 @@ import {IPoint} from "./_types/IPoint";
  * @param options Additional options
  * @returns A reference to be added to the div for which to detect dragging
  */
-export const useDragStart = (
+export const useDragStart = <T extends HTMLElement = HTMLDivElement>(
     onDrag: (start: IPoint, offset: IPoint, target: HTMLElement) => void,
     {
         /** Whether to prevent the base drag events, even before dragging trigger */
@@ -16,7 +16,7 @@ export const useDragStart = (
         distanceThreshold = 10,
     }: {preventDefault?: boolean; distanceThreshold?: number} = {}
 ) => {
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useRef<T>(null);
     useEffect(() => {
         const el = ref.current;
         if (!el) return;

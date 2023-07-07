@@ -10,8 +10,7 @@ import React, {
     useCallback,
     useMemo,
 } from "react";
-import {IValNode} from "../../_types/IValNode";
-import {IEntry, IVal} from "../../_types/IVal";
+import {IEntry, IVal} from "../../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 import {useHighlightCache} from "./HighlightCache";
