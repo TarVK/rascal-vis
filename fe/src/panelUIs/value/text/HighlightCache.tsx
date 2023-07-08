@@ -14,9 +14,10 @@ import {highlight} from "./highlight";
 import {IHighlight} from "./_types/IHighlight";
 import {IEntry, IVal} from "../../../_types/IVal";
 import {IHoverHandlers} from "./_types/IHoverHandler";
+import {IHighlightSettings} from "./_types/IHighlightSettings";
 
 export const highlightCacheContext = createContext<IHighlightCache>(
-    (value, maxLength, hover) => highlight(value, maxLength, hover)
+    (value, maxLength, settings, hover) => highlight(value, maxLength, settings, hover)
 );
 export const useHighlightCache = () => useContext(highlightCacheContext);
 
@@ -27,24 +28,26 @@ export const HighlightCache: FC<{
     const cachedHighlight = useMemo<IHighlightCache>(() => {
         const cache = new Map<
             IVal | IEntry,
-            Map<IHoverHandlers | undefined, Map<number, IHighlight>>
+            Map<
+                IHoverHandlers | undefined,
+                Map<number, Map<IHighlightSettings, IHighlight>>
+            >
         >();
 
-        return (value, maxLength, hoverHandlers) => {
+        return (value, maxLength, settings, hoverHandlers) => {
             if (!cache.has(value)) cache.set(value, new Map());
 
             const cache2 = cache.get(value)!;
             if (!cache2.has(hoverHandlers)) cache2.set(hoverHandlers, new Map());
 
             const cache3 = cache2.get(hoverHandlers)!;
-            if (cache3.has(maxLength)) {
-                // console.count("hit");
-                return cache3.get(maxLength)!;
-            }
-            // console.count("miss");
+            if (!cache3.has(maxLength)) cache3.set(maxLength, new Map());
 
-            const h = highlight(value, maxLength, hoverHandlers);
-            cache3.set(maxLength, h);
+            const cache4 = cache3.get(maxLength)!;
+            if (cache4.has(settings)) return cache4.get(settings)!;
+
+            const h = highlight(value, maxLength, settings, hoverHandlers);
+            cache4.set(settings, h);
             return h;
         };
     }, [cacheKey]);

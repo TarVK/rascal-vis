@@ -152,6 +152,21 @@ export class SettingsState extends PanelState {
         this.settings.set(merge(current, settings) as ISettings);
     }
 
+    /** @override */
+    public serialize(): ISettingsPanelSerialization {
+        return {
+            ...super.serialize(),
+            type: "settings",
+            settings: this.settings.get(),
+        };
+    }
+
+    /** @override */
+    public deserialize(data: ISettingsPanelSerialization): void {
+        super.deserialize(data);
+        this.updateSettings(data.settings);
+    }
+
     // Profile loading and saving
     /**
      * Loads the given profile into the application

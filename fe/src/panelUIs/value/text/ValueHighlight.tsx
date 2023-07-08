@@ -15,6 +15,7 @@ import {IHighlight} from "./_types/IHighlight";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 import {useHighlightCache} from "./HighlightCache";
 import {IHighlightCache} from "./_types/IHighlightCache";
+import {IHighlightSettings} from "./_types/IHighlightSettings";
 
 // Based on an in browser measurement in chrome
 const pixelsPerChar = 722 / 100;
@@ -26,9 +27,10 @@ export const ValueHighlight = forwardRef<
         className?: string;
         minWidth?: number;
         hoverHandlers?: IHoverHandlers | undefined;
+        settings: IHighlightSettings;
         wrapElement?: (node: ReactNode) => ReactNode;
     }
->(({value, className, wrapElement = n => n, hoverHandlers, minWidth}, ref) => {
+>(({value, className, wrapElement = n => n, hoverHandlers, settings, minWidth}, ref) => {
     // Determine the content at the right size, using the highlight function
     const sizeRef = useRef<HTMLDivElement>(null);
     const [content, setContent] = useState<ReactNode>(null);
@@ -69,6 +71,7 @@ export const ValueHighlight = forwardRef<
                 highlight,
                 value,
                 maxLength,
+                settings,
                 hoverHandlers
             );
             // const highlightData = highlight(value, 2);
@@ -85,7 +88,7 @@ export const ValueHighlight = forwardRef<
         const observer = new ResizeObserver(calculate);
         observer.observe(el);
         return () => observer.disconnect();
-    }, [value, hoverHandlers]);
+    }, [value, settings, hoverHandlers]);
 
     return (
         <div
@@ -109,11 +112,12 @@ export function highlightFit(
     highlight: IHighlightCache,
     value: IVal | IEntry,
     maxLength: number,
+    settings: IHighlightSettings,
     handlers?: IHoverHandlers
 ): {fit: IHighlight; noFit: IHighlight | null} {
-    let prev = highlight(value, 1, handlers);
+    let prev = highlight(value, 1, settings, handlers);
     for (let i = 2; i < 10; i++) {
-        let newHighlight = highlight(value, i, handlers);
+        let newHighlight = highlight(value, i, settings, handlers);
         if (newHighlight.length > maxLength) return {fit: prev, noFit: newHighlight};
         if (!newHighlight.overflow) return {fit: newHighlight, noFit: null};
         prev = newHighlight;

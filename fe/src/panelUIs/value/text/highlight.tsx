@@ -2,21 +2,24 @@ import React, {FC, Fragment, useRef, useLayoutEffect, ReactNode, useState} from 
 import {IEntry, IVal} from "../../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
 import {IHoverHandlers} from "./_types/IHoverHandler";
+import {IHighlightSettings} from "./_types/IHighlightSettings";
 
 /**
  * Retrieves the highlighted text fora  given value
  * @param value The value to be highlighted
  * @param remainingDepth The remaining depth to be expanded
+ * @param settings The highlight settings
  * @param hoverHandler The value hover handlers
  * @returns The highlighted text el and character count
  */
 export function highlight(
     value: IVal | IEntry,
     remainingDepth: number,
+    settings: IHighlightSettings,
     hoverHandler?: IHoverHandlers
 ): IHighlight {
     const rec = (value: IVal | IEntry) =>
-        highlight(value, remainingDepth - 1, hoverHandler);
+        highlight(value, remainingDepth - 1, settings, hoverHandler);
     const baseSymbol = (text: string, type: string, id?: number) => {
         const hasId = id != undefined;
         return {
@@ -111,16 +114,24 @@ export function highlight(
         };
     } else if (value.type == "map") {
         if (remainingDepth == 0) return collapse();
-        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
-        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
         if (remainingDepth == 2) {
             // Would result in `(...: ..., ...: ...)`, we prefer `(..., ..., ...)` instead
             remainingDepth = 1;
         }
+
+        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
+        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
         const joinedChildren = join(value.children.map(rec), baseSymbol(", ", "symbol"));
+
+        const {length: countLength, el: countEl} = settings.showCollectionSizes[
+            value.type
+        ]
+            ? baseSymbol(`(${value.children.length})`, "count")
+            : {length: 0, el: undefined};
 
         return {
             length:
+                countLength +
                 openLength +
                 joinedChildren.reduce((a, {length: b}) => a + b, 0) +
                 closeLength,
@@ -130,6 +141,7 @@ export function highlight(
                     id={value.id + ""}
                     onMouseEnter={handlers?.onEnter}
                     onMouseLeave={handlers?.onLeave}>
+                    {countEl}
                     {openEl}
                     {joinedChildren.map(({el: el}, i) => (
                         <Fragment key={i}>{el}</Fragment>
@@ -146,10 +158,11 @@ export function highlight(
                 : value.type == "tuple"
                 ? {o: "<", c: ">"}
                 : {o: "[", c: "]"};
-        const {length: countLength, el: countEl} =
-            value.type == "set" || value.type == "list"
-                ? baseSymbol(`(${value.children.length})`, "count")
-                : {length: 0, el: undefined};
+        const {length: countLength, el: countEl} = settings.showCollectionSizes[
+            value.type
+        ]
+            ? baseSymbol(`(${value.children.length})`, "count")
+            : {length: 0, el: undefined};
 
         const {length: openLength, el: openEl} = baseSymbol(brackets.o, "symbol");
         const {length: closeLength, el: closeEl} = baseSymbol(brackets.c, "symbol");

@@ -90,6 +90,7 @@ export const ValueNode: (props: INodeRendererProps) => ReactNode = ({
 }) => {
     if (!isValNode(element)) return <></>;
 
+    const [h] = useDataHook();
     const {value} = element;
     const state = useAppState();
     const dragRef = element.notOpenable ? undefined : useValueDrag(element, state);
@@ -174,6 +175,7 @@ export const ValueNode: (props: INodeRendererProps) => ReactNode = ({
                 className={css({flexGrow: 1})}
                 hoverHandlers={hoverHandlers}
                 minWidth={300}
+                settings={state.getSettings(h).text}
                 ref={dragRef}
             />
 

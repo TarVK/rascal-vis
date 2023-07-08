@@ -25,6 +25,7 @@ export function useValueDrag(element: INode, state: AppState) {
                 preview: (
                     <ValueHighlight
                         value={element.value}
+                        settings={state.getSettings().text}
                         className={css({
                             width,
                             ".wrapper": {

@@ -12,12 +12,11 @@ import {IPanelComponents} from "../_types/IPanelComponents";
 import {createValueNodes} from "../parse/createValueNodes";
 import {IValNode} from "../_types/IValNode";
 import {IValMap} from "../_types/IValMap";
-import {INode} from "react-accessible-treeview";
 import {getName} from "../parse/getName";
 import {PanelState} from "./PanelState";
 import {SpecialTabsState} from "./SpecialTabsState";
-import {ISettings} from "@fluentui/react";
 import {TDeepPartial} from "./_types/TDeepPartial";
+import {ISettings} from "./_types/ISettings";
 
 /**
  * Representing all application state data
@@ -98,6 +97,12 @@ export class AppState {
     public setValueText(text: string): void {
         this.valueText.set(text);
         const valueNodes = this.valueNodes.get();
+        if (valueNodes) {
+            const nodes = this.getNodes(valueNodes[0]);
+            if (!nodes) return;
+            this.specialTabs.root.setValueNodes(nodes);
+        }
+
         // if (valueNodes && valueNodes.length > 0) {
         //     const basePanel = this.openNode(valueNodes[0]);
         //     if (!basePanel) return;
@@ -248,6 +253,21 @@ export class AppState {
      * @returns The state of the opened tab, or null if failed
      */
     public openNode(value: IValNode, show: boolean = true): ValuePanelState | null {
+        const nodes = this.getNodes(value);
+        if (!nodes) return null;
+
+        const panelState = new ValuePanelState(nodes);
+        this.addPanel(panelState, show);
+        panelState.setName(getName(value.value));
+        return panelState;
+    }
+
+    /**
+     * Retrieves the nodes representing a given value
+     * @param value The value to get the node for
+     * @returns The value nodes, or null if the value isn't loaded
+     */
+    protected getNodes(value: IValNode): IValNode[] | null {
         const nodes = this.valueNodes.get();
         if (!nodes) return null;
 
@@ -267,10 +287,7 @@ export class AppState {
             value,
             ...childNodes,
         ];
-        const panelState = new ValuePanelState(allNodes);
-        this.addPanel(panelState, show);
-        panelState.setName(getName(value.value));
-        return panelState;
+        return allNodes;
     }
 
     /**

@@ -58,9 +58,8 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
     const highlightStyleClass = useHighlightStyle(state);
 
     const [showCount, setShowCount] = useState(0);
-    const increment = 50;
     useEffect(() => {
-        setShowCount(50);
+        setShowCount(state.getSettings().search.initialLoadCount);
     }, [matchTree]);
     const trimmedMatchTree = useMemo(() => {
         if (!matchTree) return null;
@@ -136,7 +135,12 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                     <>
                         <PrimaryButton
                             style={{marginTop: 10}}
-                            onClick={() => setShowCount(count => count + increment)}>
+                            onClick={() =>
+                                setShowCount(
+                                    count =>
+                                        count + state.getSettings().search.loadMoreCount
+                                )
+                            }>
                             Load more results
                         </PrimaryButton>
                     </>
