@@ -11,6 +11,7 @@ import {ValuePanelState} from "./ValuePanelState";
 import {ISettings} from "./_types/ISettings";
 import {TDeepPartial} from "./_types/TDeepPartial";
 import {v4 as uuid} from "uuid";
+import {merge} from "../utils/deepMerge";
 
 /**
  * The settings for the application
@@ -132,23 +133,6 @@ export class SettingsState extends PanelState {
      */
     public updateSettings(settings: TDeepPartial<ISettings>): void {
         const current = this.settings.get();
-        function merge(a: object, b: object): object {
-            if ("raw" in b) return b;
-            return {
-                ...a,
-                ...Object.fromEntries(
-                    Object.entries(b).map(([key, val]) => {
-                        if (
-                            key in a &&
-                            typeof (a as any)[key] == "object" &&
-                            typeof val == "object"
-                        )
-                            return [key, merge((a as any)[key], val)];
-                        return [key, val];
-                    })
-                ),
-            };
-        }
         this.settings.set(merge(current, settings) as ISettings);
     }
 
@@ -185,7 +169,7 @@ export class SettingsState extends PanelState {
             if (!specialTab) this.appState.removePanel(panel);
         });
         profile.panels.forEach(data => {
-            const specialTab = tabs.find(({panel}) => panel.stateType == data.type);
+            const specialTab = tabs.find(({panel}) => panel.getID() == data.id);
             if (specialTab) specialTab.panel.deserialize(data);
             else {
                 const panelState = createPanel(data as any);
@@ -248,7 +232,7 @@ export class SettingsState extends PanelState {
 }
 
 function createPanel(data: ITextPanelSerialization): PanelState | null {
-    if (data.type == "default") {
+    if (data.type == "value") {
         const panel = new ValuePanelState([]);
         panel.deserialize(data);
         return panel;

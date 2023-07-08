@@ -30,6 +30,7 @@ export class ValuePanelState extends PanelState {
 
     // Reveal listeners
     protected onRevealListeners: Set<(values: Set<IValNode>) => void> = new Set();
+    protected revealed: Set<IValNode> | undefined;
 
     public constructor(valueNodes: IValNode[]) {
         super();
@@ -115,6 +116,7 @@ export class ValuePanelState extends PanelState {
             added = newAdded;
         }
 
+        this.revealed = out;
         for (let listener of this.onRevealListeners) listener(out);
         return out.size > 0;
     }
@@ -125,6 +127,7 @@ export class ValuePanelState extends PanelState {
      * @returns A function that can be used to remove the listener
      */
     public addExpandListener(listener: (value: Set<IValNode>) => void): () => void {
+        if (this.revealed) listener(this.revealed);
         this.onRevealListeners.add(listener);
         return () => this.onRevealListeners.delete(listener);
     }

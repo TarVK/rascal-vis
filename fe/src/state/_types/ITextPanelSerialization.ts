@@ -1,3 +1,3 @@
 import {IValuePanelSerialization} from "./IValuePanelSerialization";
 
-export type ITextPanelSerialization = IValuePanelSerialization & {type: "default"};
+export type ITextPanelSerialization = IValuePanelSerialization & {type: "value"};

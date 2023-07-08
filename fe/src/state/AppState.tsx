@@ -1,22 +1,26 @@
 import React, {FC} from "react";
 import {DataCacher, Field, IDataHook} from "model-react";
 import {IEntry, IVal, IValPlain} from "../_types/IVal";
-import {value} from "../parse/parser";
+import {value} from "../value/parser";
 import {Failure, Result} from "parsimmon";
 import {dataAddress} from "../dataAddress";
-import {fixReferences} from "../parse/fixReferences";
+import {fixReferences} from "../value/fixReferences";
 import {ValuePanelState} from "./ValuePanelState";
 import {LayoutState} from "../layout/LayoutState";
 import {IContent} from "../layout/_types/IContentGetter";
 import {IPanelComponents} from "../_types/IPanelComponents";
-import {createValueNodes} from "../parse/createValueNodes";
+import {createValueNodes} from "../value/createValueNodes";
 import {IValNode} from "../_types/IValNode";
 import {IValMap} from "../_types/IValMap";
-import {getName} from "../parse/getName";
+import {getName} from "../value/getName";
 import {PanelState} from "./PanelState";
 import {SpecialTabsState} from "./SpecialTabsState";
 import {TDeepPartial} from "./_types/TDeepPartial";
 import {ISettings} from "./_types/ISettings";
+import {getValueProfile} from "./valueData/getValueProfile";
+import {getValueHighlight} from "./valueData/getValueHighlight";
+import {NodeId} from "react-accessible-treeview";
+import {getValueTabs} from "./valueData/getValueTabs";
 
 /**
  * Representing all application state data
@@ -100,15 +104,83 @@ export class AppState {
         if (valueNodes) {
             const nodes = this.getNodes(valueNodes[0]);
             if (!nodes) return;
-            this.specialTabs.root.setValueNodes(nodes);
-        }
 
-        // if (valueNodes && valueNodes.length > 0) {
-        //     const basePanel = this.openNode(valueNodes[0]);
-        //     if (!basePanel) return;
-        //     basePanel.setCanClose(false);
-        //     basePanel.setName("Root");
-        // }
+            const map: Map<NodeId, IValNode> = new Map();
+            for (let node of nodes) map.set(node.id, node);
+
+            // Load the profile data
+            const profileData = getValueProfile(nodes);
+            if (profileData.selected) {
+                this.saveProfile();
+                const settings = this.specialTabs.settings;
+                const profiles = settings.getProfiles();
+                const profile = profiles.find(({name}) => name == profileData.selected);
+                if (!profile) {
+                    if (profileData.init) {
+                        const initProfile = profiles.find(
+                            ({name}) => name == profileData.init
+                        );
+                        if (initProfile) settings.loadProfile(initProfile);
+                    }
+                    settings.addAndSelectProfile(profileData.selected);
+                } else {
+                    settings.loadProfile(profile);
+                }
+            }
+            if (profileData.update) this.updateSettings(profileData.update);
+
+            // Set the root value
+            this.specialTabs.root.setValueNodes(nodes);
+
+            // Load tabs
+            const tabsData = getValueTabs(nodes, map);
+            const panels = Object.values(this.panels.get());
+            const layout = this.layoutState;
+            const tabPanels = layout.getAllTabPanels();
+            for (let tabData of tabsData) {
+                let panel: ValuePanelState | undefined | null = panels.find(
+                    (panel): panel is ValuePanelState =>
+                        panel.getName() == tabData.name &&
+                        panel.getID() != "root" &&
+                        panel instanceof ValuePanelState
+                );
+                if (!panel) {
+                    const copy = panels.find(
+                        (panel): panel is ValuePanelState =>
+                            panel.getName() == tabData.init &&
+                            panel instanceof ValuePanelState
+                    );
+
+                    // Initialize from another panel
+                    if (copy) {
+                        const parent = tabPanels.find(parent =>
+                            parent.tabs.some(({id}) => id == copy.getID())
+                        );
+                        panel = this.openNode(tabData.node, !parent);
+                        if (!panel) continue;
+
+                        const copyData = {...copy.serialize(), id: panel.getID()};
+                        panel.deserialize(copyData);
+                        if (parent) layout.openTab(parent.id, panel.getID());
+                    } else {
+                        // Create a new panel
+                        panel = this.openNode(tabData.node);
+                    }
+                } else {
+                    // Initialize into an existing panel
+                    const nodes = this.getNodes(tabData.node);
+                    if (!nodes) continue;
+                    console.log(nodes);
+                    panel.setValueNodes(nodes);
+                }
+                if (panel) panel.setName(tabData.name);
+            }
+
+            // Load highlight data
+            const highlightData = getValueHighlight(nodes, map);
+            if (highlightData.highlight) this.setHighlight(highlightData.highlight);
+            if (highlightData.expand.length > 0) this.revealNodes(highlightData.expand);
+        }
     }
 
     // Layout data
@@ -135,7 +207,9 @@ export class AppState {
      * @param panel The panel to be shown
      */
     public showPanel(panel: PanelState) {
-        const panelId = this.layoutState.getAllTabPanels()[0].id;
+        const panels = this.layoutState.getAllTabPanels();
+        const panelId =
+            panels.find(p => p.tabs.some(({id}) => id == "root"))?.id ?? panels[0].id;
         this.layoutState.openTab(panelId, panel.getID());
         this.layoutState.selectTab(panelId, panel.getID());
     }

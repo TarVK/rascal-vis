@@ -4,6 +4,7 @@ import {usePersistentMemo} from "./utils/usePersistentMemo";
 import {AppState} from "./state/AppState";
 import {IPanelComponents} from "./_types/IPanelComponents";
 import val from "./value.txt";
+import val2 from "./value2.txt";
 import {SearchPanelState} from "./state/SearchPanelState";
 import {StateContext} from "./state/StateContext";
 import {SpecialTabsState} from "./state/SpecialTabsState";
@@ -16,9 +17,9 @@ import {SettingsPanel} from "./panelUIs/settings/SettingsPanel";
 export const App: FC = () => {
     const state = usePersistentMemo(() => {
         const state = new AppState();
-        state.setValueText(val);
-        state.loadProfilesData();
         (window as any).state = state;
+        state.loadProfilesData();
+        state.setValueText(val2);
         return state;
     }, []);
     useEffect(() => {
