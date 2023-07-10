@@ -13,6 +13,7 @@ import {
     useTheme,
 } from "@fluentui/react";
 import {useId} from "@fluentui/react-hooks";
+import {PlainValueState} from "../../state/valueTypes/PlainValueState";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,
@@ -26,8 +27,10 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     const visualization =
         type instanceof GraphValueState ? (
             <GraphPanel state={state} graphState={type} />
+        ) : type instanceof PlainValueState ? (
+            <TextPanel state={state} panel={panel} textState={type} />
         ) : (
-            <TextPanel state={state} panel={panel} />
+            <></>
         );
 
     const options = panel.getApplicableTypes(h);

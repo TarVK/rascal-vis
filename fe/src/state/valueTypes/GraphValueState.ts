@@ -1,4 +1,4 @@
-import {DataCacher, IDataHook} from "model-react";
+import {DataCacher, Field, IDataHook, Observer} from "model-react";
 import {BaseValueTypeState} from "./BaseValueTypeState";
 import {IPlainValueSerialization} from "./_types/IPlainValueSerialization";
 import {IGraphValueSerialization} from "./_types/IGraphValueSerialization";
@@ -10,6 +10,11 @@ import {getConstrField, getConstrValField} from "../valueData/util/getConstrFiel
 import {IValNode} from "../../_types/IValNode";
 import {TPartialBy} from "../../utils/_types/TPartialBy";
 import Color from "color";
+import {IGraphView} from "./_types/IGraphView";
+import {IGraphPositions} from "./_types/IGraphPositions";
+import {deepEquals} from "../../value/deepEquals";
+import {nonNullFilter} from "../../utils/nonNullFilter";
+import {ValuePanelState} from "../ValuePanelState";
 
 /** Data about graph constructors */
 export const graphConstrData = {
@@ -46,6 +51,25 @@ export class GraphValueState extends BaseValueTypeState {
         return getGraphData(value as IGraphValueInput, nodes);
     });
 
+    /** The view position data for the graph */
+    public view = new Field<IGraphView | null>(null);
+
+    /** The node positions data for the graph */
+    public positions = new Field<IGraphPositions | null>(null);
+
+    public constructor(panel: ValuePanelState) {
+        super(panel);
+
+        new Observer(
+            h => {
+                this.graph.get(h);
+            },
+            {debounce: -1}
+        ).listen(() => {
+            this.updatePositionsSources();
+        });
+    }
+
     /** @override */
     public isApplicable(hook?: IDataHook): boolean {
         const value = this.panel.value.get(hook);
@@ -63,11 +87,33 @@ export class GraphValueState extends BaseValueTypeState {
     public serialize(): IGraphValueSerialization {
         return {
             type: "graph",
+            view: this.view.get() ?? undefined,
+            positions: this.positions.get() ?? undefined,
         };
     }
 
     /** @override */
-    public deserialize(value: IGraphValueSerialization): void {}
+    public deserialize(value: IGraphValueSerialization): void {
+        this.view.set(value.view ?? null);
+        this.positions.set(value.positions ?? null);
+    }
+
+    /**
+     * Updates the sources of the position data
+     */
+    public updatePositionsSources() {
+        const positions = this.positions.get();
+        const graph = this.graph.get();
+        if (!positions || !graph) return;
+        const newPositions = positions
+            .map(({id, position}) => {
+                const newNode = graph.nodes.find(({id: idNew}) => deepEquals(id, idNew));
+                if (!newNode) return null;
+                return {id: newNode.id, position};
+            })
+            .filter(nonNullFilter);
+        this.positions.set(newPositions);
+    }
 }
 
 /**

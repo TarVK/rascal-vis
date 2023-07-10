@@ -6,12 +6,15 @@ import {IValuePanelSerialization} from "./_types/IValuePanelSerialization";
 import {BaseValueTypeState} from "./valueTypes/BaseValueTypeState";
 import {PlainValueState} from "./valueTypes/PlainValueState";
 import {GraphValueState} from "./valueTypes/GraphValueState";
+import {NodeId} from "react-accessible-treeview";
 
 /**
  * The state associated to a single shown panel
  */
 export class ValuePanelState extends PanelState {
     public stateType = "value";
+
+    public sourceId = new Field<NodeId>("");
 
     // Value data
     protected valueNodes = new Field<IValNode[]>([]);
@@ -34,19 +37,10 @@ export class ValuePanelState extends PanelState {
 
     public constructor(valueNodes: IValNode[]) {
         super();
-        this.valueNodes.set(valueNodes);
+        this.setValueNodes(valueNodes);
         this.types = [new PlainValueState(this), new GraphValueState(this)];
         this.selectedType = new Field(this.types[0]);
     }
-
-    // /**
-    //  * Creates a new value panel state and initializes the type data
-    //  * @param valueNodes
-    //  */
-    // public static create(valueNodes: IValNode[]) {
-    //     const panel = new ValuePanelState(valueNodes);
-    //     panel.types = [new PlainValueState(panel)];
-    // }
 
     /**
      * Sets the new value nodes
@@ -54,6 +48,9 @@ export class ValuePanelState extends PanelState {
      */
     public setValueNodes(valueNodes: IValNode[]): void {
         this.valueNodes.set(valueNodes);
+
+        const id = valueNodes[1]?.id;
+        if (id != undefined) this.sourceId.set(id);
     }
 
     /**
@@ -63,6 +60,15 @@ export class ValuePanelState extends PanelState {
      */
     public getValueNodes(hook?: IDataHook): IValNode[] {
         return this.valueNodes.get(hook);
+    }
+
+    /**
+     * Retrieves the id of the root of this panel
+     * @param hook The hook to subscribe to changes
+     * @returns The ID of the current root, or the previously initialized root
+     */
+    public getSourceNodeId(hook?: IDataHook): NodeId {
+        return this.sourceId.get(hook);
     }
 
     // Type management
@@ -140,6 +146,7 @@ export class ValuePanelState extends PanelState {
     public serialize(): IValuePanelSerialization {
         return {
             ...super.serialize(),
+            sourceNodeId: this.sourceId.get(),
             selectedType: this.selectedType.get().type,
             types: this.types.map(type => type.serialize()),
         };
@@ -151,6 +158,7 @@ export class ValuePanelState extends PanelState {
      */
     public deserialize(data: IValuePanelSerialization): void {
         super.deserialize(data);
+        this.sourceId.set(data.sourceNodeId);
         data.types.forEach(typeData => {
             const type = this.types.find(type => type.type == typeData.type);
             if (!type) return;

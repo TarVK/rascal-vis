@@ -2,20 +2,29 @@ import {useEffect} from "react";
 import {DataSet, Network, Data, Edge, Node} from "vis-network";
 import {IGraphData} from "../../../state/valueTypes/_types/IGraphData";
 import {useTheme} from "@fluentui/react";
+import {GraphValueState} from "../../../state/valueTypes/GraphValueState";
+import {useDataHook} from "model-react";
 
 /**
  * Takes care of node/edge synchronization between the state and this visualization
  * @param network The network to visualize the data in
  * @param graphData The data to be visualized
  */
-export function useGraphSync(network: Network | null, graphData: IGraphData | null) {
+export function useGraphValuesSync(network: Network | null, graphState: GraphValueState) {
     const theme = useTheme();
+    const [h] = useDataHook();
+    const graphData = graphState.graph.get(h);
+    const positions = graphState.positions.get(h);
+
     useEffect(() => {
         if (!network || !graphData) return;
 
         // Format data
+        const positionsMap =
+            positions &&
+            Object.fromEntries(positions.map(({id, position}) => [id.id, position]));
         const nodes = new DataSet<Node>(
-            graphData.nodes.map(node => ({
+            graphData.nodes.map<Node>(node => ({
                 id: node.id.id,
                 label: node.name,
                 color: {
@@ -33,6 +42,8 @@ export function useGraphSync(network: Network | null, graphData: IGraphData | nu
                     color: theme.palette.black,
                 },
                 borderWidth: 0,
+                x: positionsMap?.[node.id.id].x,
+                y: positionsMap?.[node.id.id].y,
                 // borderWidthSelected: 3,
             }))
         );
@@ -71,5 +82,10 @@ export function useGraphSync(network: Network | null, graphData: IGraphData | nu
             edges: edges,
         };
         network.setData(data);
+        // network.stopSimulation();
+        // network.stabilize();
+        const view = graphState.view.get();
+        if (!view) return;
+        network.moveTo(view);
     }, [network, graphData]);
 }

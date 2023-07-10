@@ -10,7 +10,8 @@ import {INodeRole, IValNode} from "../_types/IValNode";
 export function createValueNodes(value: IVal): [IValNode[], IValMap] {
     const out: IValNode[] = [];
     const map: IValMap = new Map();
-    createValueNodesRec(value, -1, null, out, map);
+    createValueNodesRec(value, -1, null, out, map, "");
+    // console.log(out);
     return [out, map];
 }
 
@@ -21,21 +22,24 @@ export function createValueNodes(value: IVal): [IValNode[], IValMap] {
  * @param role The node's role in relation to its parent
  * @param output The output list to add the nodes to
  * @param map The map of values and what nodes they are referenced in
- * @param IDer The global ID counter
+ * @param ID The ID to be used for the node
  * @returns The created node
  */
 function createValueNodesRec(
     value: IVal,
-    parent: number,
+    parent: string | number,
     role: INodeRole | null,
     output: IValNode[],
     map: IValMap,
-    IDer: {ID: number} = {ID: 0}
+    ID: string
 ): IValNode {
     const namePrefix = getNamePrefix(role);
-    const ID = IDer.ID++;
-    const rec = (value: IVal, parentId: number, role: INodeRole | null) =>
-        createValueNodesRec(value, parentId, role, output, map, IDer);
+    const rec = (
+        value: IVal,
+        parentId: string,
+        role: INodeRole | null,
+        childId: string
+    ) => createValueNodesRec(value, parentId, role, output, map, childId);
 
     const addNode = (node: IValNode) => {
         let nodes = map.get(node.value);
@@ -63,11 +67,19 @@ function createValueNodesRec(
 
         const startLength = output.length;
         value.children.forEach((child, i) => {
-            const childNode = rec(child, ID, {type: "index", index: i});
+            const childNode = rec(child, ID, {type: "index", index: i}, ID + "." + i);
             node.children.push(childNode.id);
         });
+        const nameCount: Record<string, number> = {};
         value.namedChildren.forEach((child, i) => {
-            const childNode = rec(child.value, ID, {type: "name", name: child.name});
+            const childID = (nameCount[child.name] ?? -1) + 1;
+            nameCount[child.name] = childID;
+            const childNode = rec(
+                child.value,
+                ID,
+                {type: "name", name: child.name},
+                ID + "." + child.name + (childID == 0 ? "" : childID)
+            );
             node.children.push(childNode.id);
         });
         node.range = output.length - startLength;
@@ -79,8 +91,9 @@ function createValueNodesRec(
         addNode(node);
 
         const startLength = output.length;
+        let childID = 0;
         for (let entry of value.children) {
-            const entryId = IDer.ID++;
+            const entryId = ID + "." + childID++;
             node.children.push(entryId);
 
             const entryNode: IValNode = {
@@ -95,8 +108,13 @@ function createValueNodesRec(
             addNode(entryNode);
 
             const startLength = output.length;
-            const keyNode = rec(entry.key, entryId, {type: "key"});
-            const valueNode = rec(entry.value, entryId, {type: "value"});
+            const keyNode = rec(entry.key, entryId, {type: "key"}, entryId + ".key");
+            const valueNode = rec(
+                entry.value,
+                entryId,
+                {type: "value"},
+                entryId + ".value"
+            );
             entryNode.children.push(keyNode.id, valueNode.id);
             entryNode.name = keyNode.name.substring(getNamePrefix({type: "key"}).length);
             entryNode.range = output.length - startLength;
@@ -117,7 +135,7 @@ function createValueNodesRec(
 
         const startLength = output.length;
         value.children.forEach((child, i) => {
-            const childNode = rec(child, ID, {type: "index", index: i});
+            const childNode = rec(child, ID, {type: "index", index: i}, ID + "." + i);
             node.children.push(childNode.id);
         });
         node.range = output.length - startLength;

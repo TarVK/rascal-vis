@@ -1,1 +1,1 @@
-export type IPlainValueSerialization = {type: "plain"};
+export type IPlainValueSerialization = {type: "plain"; expanded: (string | number)[]};

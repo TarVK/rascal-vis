@@ -183,6 +183,7 @@ export class SettingsState extends PanelState {
                 if (panelState) this.appState.addPanel(panelState, false);
             }
         });
+        this.appState.reloadTabValues();
     }
 
     /**

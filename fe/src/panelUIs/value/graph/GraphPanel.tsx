@@ -16,8 +16,9 @@ import {IVal} from "../../../_types/IVal";
 import {useGraphDataMaps} from "./useGraphDataMaps";
 import {useGraphHighlight} from "./useGraphHighlight";
 import {useGraphNetwork} from "./useGraphNetwork";
-import {useGraphSync} from "./useGraphSync";
+import {useGraphValuesSync} from "./useGraphValuesSync";
 import {useGraphContextMenu} from "./useGraphContextMenu";
+import {useGraphPositionsSync} from "./useGraphPositionsSync";
 
 export const GraphPanel: FC<{state: AppState; graphState: GraphValueState}> = ({
     state,
@@ -26,20 +27,20 @@ export const GraphPanel: FC<{state: AppState; graphState: GraphValueState}> = ({
     const graphContainer = useRef<HTMLDivElement>(null);
 
     const [h] = useDataHook();
-    const graphData = graphState.graph.get(h);
+    const maps = useGraphDataMaps(graphState.graph.get(h));
 
     const sharpness = state.getSettings(h).graph.sharpness;
-    const network = useGraphNetwork(graphContainer, sharpness);
-    useGraphSync(network, graphData);
+    const network = useGraphNetwork(graphContainer, graphState, sharpness);
+    useGraphValuesSync(network, graphState);
+    useGraphPositionsSync(graphState, maps, network);
 
-    const maps = useGraphDataMaps(graphData);
     useGraphHighlight(state, maps, network);
     const contextMenu = useGraphContextMenu(state, maps, network);
 
     return (
         <>
             {contextMenu}
-            <div ref={graphContainer}></div>
+            <div ref={graphContainer} style={{height: "100%"}}></div>
         </>
     );
 };

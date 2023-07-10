@@ -1,14 +1,17 @@
 import {Network, DataSet, Options} from "vis-network";
 import {useEffect, useRef, useMemo, useLayoutEffect, RefObject, useState} from "react";
+import {GraphValueState} from "../../../state/valueTypes/GraphValueState";
 
 /**
  * Initializes the graph network in the given container, and takes care of resizing/sharpening
  * @param graphContainer The container that the graph should be displayed in
+ * @param graphState The graph state to sync to
  * @param sharpness The sharpness factor to use
  * @returns The network
  */
 export function useGraphNetwork(
     graphContainer: RefObject<HTMLDivElement>,
+    graphState: GraphValueState,
     sharpness: number
 ): Network | null {
     const networkRef = useRef<Network | null>(null);
@@ -17,8 +20,15 @@ export function useGraphNetwork(
         const container = graphContainer.current;
         if (!container) return;
 
+        const view = graphState.view.get();
         const options: Options = {
             layout: {randomSeed: 1},
+            physics: {
+                stabilization: {
+                    fit: view == null,
+                },
+                minVelocity: 0.02,
+            },
             autoResize: false,
             interaction: {hover: true, selectable: false},
         };
@@ -42,6 +52,10 @@ export function useGraphNetwork(
             const size = container.getBoundingClientRect();
             window.devicePixelRatio = sharpness;
             network.setSize(`${size.width}px`, `${size.height}px`);
+
+            const view = graphState.view.get();
+            if (view) network.moveTo(view);
+
             network.redraw();
         });
         observer.observe(container);

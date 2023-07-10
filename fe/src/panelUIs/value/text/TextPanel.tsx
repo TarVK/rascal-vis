@@ -39,11 +39,14 @@ import {useTreeNodeStyle} from "./useTreeNodeStyle";
 import {useHighlightStyle} from "./useHighlightStyle";
 import {useValueDrag} from "./useValueDrag";
 import {StyledContextMenu} from "../../../components/StyledContextMenu";
+import {PlainValueState} from "../../../state/valueTypes/PlainValueState";
+import {useExpandState} from "./useExpandSync";
 
-export const TextPanel: FC<{panel: ValuePanelState; state: AppState}> = ({
-    panel,
-    state,
-}) => {
+export const TextPanel: FC<{
+    panel: ValuePanelState;
+    state: AppState;
+    textState: PlainValueState;
+}> = ({panel, textState, state}) => {
     const [h] = useDataHook();
     const nodes = panel.getValueNodes(h);
 
@@ -51,15 +54,7 @@ export const TextPanel: FC<{panel: ValuePanelState; state: AppState}> = ({
     const highlightStyleClass = useHighlightStyle(state);
     const sizeRef = useRef<HTMLDivElement>(null);
 
-    // Handle revealing
-    const [expandNodes, setExpandNodes] = useState<(string | number)[]>([]);
-    useEffect(
-        () =>
-            panel.addExpandListener(nodes =>
-                setExpandNodes([...nodes].map(node => node.id))
-            ),
-        [panel]
-    );
+    const [expandNodes, onExpand] = useExpandState(panel, textState);
 
     if (nodes.length == 0) return <PanelContainer>No value specified</PanelContainer>;
 
@@ -76,6 +71,7 @@ export const TextPanel: FC<{panel: ValuePanelState; state: AppState}> = ({
                         expandedIds={expandNodes}
                         expandOnKeyboardSelect
                         nodeRenderer={ValueNode}
+                        onExpand={onExpand}
                     />
                 </ResettingHighlighCache>
             </HoverContextProvider>
