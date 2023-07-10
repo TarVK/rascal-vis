@@ -26,9 +26,15 @@ export class SettingsState extends PanelState {
     protected profileName = new Field<string>("default");
 
     protected settings = new Field<ISettings>({
+        layout: {
+            deleteUnusedPanels: false,
+        },
         search: {
             initialLoadCount: 50,
             loadMoreCount: 50,
+        },
+        graph: {
+            sharpness: 1.5,
         },
         text: {
             highlightIntensity: 1,
@@ -160,14 +166,15 @@ export class SettingsState extends PanelState {
         this.profileName.set(profile.name);
         this.profileId.set(profile.id);
 
-        const layout = this.appState.getLayoutState();
-        layout.loadLayout(profile.layout);
-
         const tabs = this.appState.specialTabs.tabs;
         this.appState.getPanels().forEach(panel => {
             const specialTab = tabs.find(({panel: p}) => p == panel);
             if (!specialTab) this.appState.removePanel(panel);
         });
+
+        const layout = this.appState.getLayoutState();
+        layout.loadLayout(profile.layout);
+
         profile.panels.forEach(data => {
             const specialTab = tabs.find(({panel}) => panel.getID() == data.id);
             if (specialTab) specialTab.panel.deserialize(data);

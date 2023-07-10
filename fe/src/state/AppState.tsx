@@ -170,11 +170,20 @@ export class AppState {
                     // Initialize into an existing panel
                     const nodes = this.getNodes(tabData.node);
                     if (!nodes) continue;
-                    console.log(nodes);
                     panel.setValueNodes(nodes);
                 }
                 if (panel) panel.setName(tabData.name);
             }
+
+            if (this.getSettings().layout.deleteUnusedPanels)
+                for (let panel of Object.values(this.panels.get())) {
+                    if (
+                        panel instanceof ValuePanelState &&
+                        panel.getValueNodes().length == 0
+                    ) {
+                        this.removePanel(panel);
+                    }
+                }
 
             // Load highlight data
             const highlightData = getValueHighlight(nodes, map);
@@ -191,8 +200,13 @@ export class AppState {
      * Adds a panel to the app
      * @param panel The panel to be added
      * @param show Whether the panel should be opened in a new tab
+     * @param deleteOnClose Whether the panel should be deleted if closed in the UI
      */
-    public addPanel(panel: PanelState, show: boolean = true): void {
+    public addPanel(
+        panel: PanelState,
+        show: boolean = true,
+        deleteOnClose: boolean = true
+    ): void {
         const current = this.panels.get();
         this.panels.set({
             ...current,
@@ -200,6 +214,10 @@ export class AppState {
         });
 
         if (show) this.showPanel(panel);
+        if (deleteOnClose)
+            this.layoutState.addCloseHandler(panel.getID(), () =>
+                this.removePanel(panel)
+            );
     }
 
     /**
@@ -217,23 +235,19 @@ export class AppState {
     /**
      * Removes the panel from the app
      * @param panel The panel to be removed
+     * @param removeFromLayout Whether this panel should also be removed from the layout data
      */
-    public removePanel(panel: PanelState): void {
+    public removePanel(panel: PanelState, removeFromLayout: boolean = true): void {
         const current = {...this.panels.get()};
+        if (!(panel.getID() in current)) return;
         delete current[panel.getID()];
         this.panels.set(current);
-    }
 
-    /**
-     * Removes all panels that are not in the list of panels
-     * @param ids The ids of panels to keep
-     */
-    public filterPanels(ids: string[]): void {
-        this.panels.set(
-            Object.fromEntries(
-                Object.entries(this.panels.get()).filter(([key]) => ids.includes(key))
-            )
-        );
+        // Close any tabs referencing this panel
+        if (!removeFromLayout) return;
+        for (let container of this.layoutState.getAllTabPanels())
+            if (container.tabs.some(({id}) => id == panel.getID()))
+                this.layoutState.closeTab(container.id, panel.getID());
     }
 
     /**

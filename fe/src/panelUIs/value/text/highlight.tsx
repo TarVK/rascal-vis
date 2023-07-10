@@ -3,6 +3,10 @@ import {IEntry, IVal} from "../../../_types/IVal";
 import {IHighlight} from "./_types/IHighlight";
 import {IHoverHandlers} from "./_types/IHoverHandler";
 import {IHighlightSettings} from "./_types/IHighlightSettings";
+import {
+    siteControlsContructorNames,
+    visualizationContructorNames,
+} from "../../../value/specialConstructors";
 
 /**
  * Retrieves the highlighted text fora  given value
@@ -66,7 +70,19 @@ export function highlight(
         };
     } else if (value.type == "constr" || value.type == "node") {
         if (remainingDepth == 0) return collapse();
-        const {length: nameLength, el: nameEl} = baseSymbol(value.name, "identifier");
+        const optGreyOut =
+            value.type == "constr" && siteControlsContructorNames.includes(value.name)
+                ? "greyOut"
+                : "";
+        const optHighlight =
+            value.type == "constr" && visualizationContructorNames.includes(value.name)
+                ? "highlight"
+                : "";
+
+        const {length: nameLength, el: nameEl} = baseSymbol(
+            value.name,
+            `identifier ${optGreyOut} ${optHighlight}`
+        );
         const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
         const indexedChildren = value.children.map(rec);
         const namedChildren = value.namedChildren.map(({name, value}) => {

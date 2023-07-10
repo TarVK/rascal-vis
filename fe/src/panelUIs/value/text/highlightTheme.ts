@@ -23,4 +23,10 @@ export const highlightTheme = (theme: ITheme): CSSObject => ({
     ".count,.label": {
         fontStyle: "italic",
     },
+    ".greyOut, .greyOut *": {
+        color: "#bbbbbb !important",
+    },
+    ".highlight": {
+        color: theme.palette.themeDark,
+    },
 });

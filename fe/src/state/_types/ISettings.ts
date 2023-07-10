@@ -1,4 +1,9 @@
 export type ISettings = {
+    /** Layout related settings */
+    layout: {
+        /** Whether to delete panels when they no longer contain a value */
+        deleteUnusedPanels: boolean;
+    };
     /** Text visualization related settings */
     text: {
         /** The opacity for the hover highlighting */
@@ -12,6 +17,11 @@ export type ISettings = {
             map: boolean;
             list: boolean;
         };
+    };
+    /** Graph visualization related settings */
+    graph: {
+        /** The rendering sharpness to use */
+        sharpness: number;
     };
     /** Search related settings */
     search: {

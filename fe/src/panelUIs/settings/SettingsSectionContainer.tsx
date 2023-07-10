@@ -8,7 +8,7 @@ export const SettingsSectionContainer: FC<{title: ReactNode}> = ({children, titl
         <div
             style={{
                 marginTop: 10,
-                paddingBottom: 10,
+                paddingBottom: 30,
                 borderBottom: `${theme.palette.neutralLight} 3px solid`,
             }}>
             <h3>{title}</h3>

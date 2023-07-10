@@ -38,6 +38,7 @@ import {HoverContextProvider, useHoverHandlers} from "./HoverContext";
 import {useTreeNodeStyle} from "./useTreeNodeStyle";
 import {useHighlightStyle} from "./useHighlightStyle";
 import {useValueDrag} from "./useValueDrag";
+import {StyledContextMenu} from "../../../components/StyledContextMenu";
 
 export const TextPanel: FC<{panel: ValuePanelState; state: AppState}> = ({
     panel,
@@ -181,7 +182,7 @@ export const ValueNode: (props: INodeRendererProps) => ReactNode = ({
 
             {element.controls?.inline}
 
-            <ContextualMenu
+            <StyledContextMenu
                 items={contextMenu}
                 hidden={!contextMenuTarget}
                 target={contextMenuTarget}

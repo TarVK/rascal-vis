@@ -14,32 +14,30 @@ export function useValueDrag(element: INode, state: AppState) {
         if (!isValNode(element)) return;
         const tab = state.openNode(element, false);
         if (!(target instanceof HTMLElement)) return;
+        if (!tab) return;
 
         const width = target.getBoundingClientRect().width;
-        if (tab) {
-            const layoutState = state.getLayoutState();
-            layoutState.setDraggingData({
-                position: start,
-                offset,
-                targetId: tab.getID(),
-                preview: (
-                    <ValueHighlight
-                        value={element.value}
-                        settings={state.getSettings().text}
-                        className={css({
-                            width,
-                            ".wrapper": {
-                                backgroundColor: theme.palette.neutralLighter,
-                                display: "inline-block",
-                            },
-                            ...highlightTheme(theme),
-                        })}
-                        wrapElement={text => <div className="wrapper">{text}</div>}
-                    />
-                ),
-            });
-            layoutState.addCloseHandler(tab.getID(), () => state.removePanel(tab));
-        }
+        const layoutState = state.getLayoutState();
+        layoutState.setDraggingData({
+            position: start,
+            offset,
+            targetId: tab.getID(),
+            preview: (
+                <ValueHighlight
+                    value={element.value}
+                    settings={state.getSettings().text}
+                    className={css({
+                        width,
+                        ".wrapper": {
+                            backgroundColor: theme.palette.neutralLighter,
+                            display: "inline-block",
+                        },
+                        ...highlightTheme(theme),
+                    })}
+                    wrapElement={text => <div className="wrapper">{text}</div>}
+                />
+            ),
+        });
     });
 }
 

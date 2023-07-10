@@ -1,8 +1,9 @@
 import {IBool, IConstr, IVal} from "../../../_types/IVal";
+import {highlightConstrData} from "../getValueHighlight";
 
 // prettier-ignore
 export type IHighlightValueDataInput = Omit<IConstr, "namedChildren"> & {
-    name: "VShow";
+    name: typeof highlightConstrData["name"];
     children: [IVal];
     namedChildren: (
         /** Whether to visually highlight this value within all visualizations */

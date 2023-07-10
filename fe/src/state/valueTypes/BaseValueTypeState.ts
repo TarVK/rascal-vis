@@ -6,6 +6,8 @@ import {ValuePanelState} from "../ValuePanelState";
  */
 export abstract class BaseValueTypeState {
     public type: string;
+    public description: {name: string; icon?: string} = {name: ""};
+
     protected panel: ValuePanelState;
 
     public constructor(panel: ValuePanelState) {

@@ -1,17 +1,17 @@
 - [x] Add min-width for text panel
 - [/] Add focus
-- [ ] Add value search
+- [x] Add value search
 - [ ] Add tab naming+menu
-- [ ] Add settings
-    - [ ] Add setting profiles
-    - [ ] Add settings saving
-- [ ] Add layout profiles
-    - [ ] Add layout saving
+- [x] Add settings
+    - [x] Add setting profiles
+    - [x] Add settings saving
+- [x] Add layout profiles
+    - [x] Add layout saving
 - [ ] Add welcome screen
-- [ ] Add special data constructors: 
-    - [ ] layout/settings selection constructor
-        - [ ] highlight/focus constructors
-    - [ ] tab selector for value
+- [x] Add special data constructors: 
+    - [x] layout/settings selection constructor
+        - [x] highlight/focus constructors
+    - [x] tab selector for value
     - [ ] graph constructor
     - [ ] grammar constructor
 - [ ] Add graph panel

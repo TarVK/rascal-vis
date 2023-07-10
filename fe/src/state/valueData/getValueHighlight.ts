@@ -3,6 +3,15 @@ import {IBool, IEntry, IVal} from "../../_types/IVal";
 import {IValNode} from "../../_types/IValNode";
 import {nonNullFilter} from "../../utils/nonNullFilter";
 import {IHighlightValueData} from "./_types/IHighlightValueData";
+import {specialConstructors} from "../../value/specialConstructors";
+import {ISpecialConstrData} from "../../value/_types/ISpecialConstrData";
+import {getSpecialConstrName} from "../../value/getSpecialConstrName";
+
+/** Data about highlight constructors */
+export const highlightConstrData = {
+    name: getSpecialConstrName("show"),
+    type: "siteControls",
+} satisfies ISpecialConstrData;
 
 /**
  * Retrieves the highlighting/reveal data to load according to the input value
@@ -48,7 +57,7 @@ function getHighlightInput(
     const value = node.value;
     if ("key" in value) return null;
     if (value.type != "constr") return null;
-    if (value.name != "VShow") return null;
+    if (value.name != highlightConstrData.name) return null;
     if (value.children.length != 1) return null;
 
     const outNode = node.children.map(id => nodesMap.get(id)).filter(nonNullFilter)[0];

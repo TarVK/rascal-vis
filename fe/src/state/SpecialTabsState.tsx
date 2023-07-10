@@ -25,25 +25,30 @@ export class SpecialTabsState {
         (this.root as any).id = "root";
         this.root.setName("Root");
         this.root.setCanClose(false);
-        this.appState.addPanel(this.root, true);
+        this.appState.addPanel(this.root, true, false);
 
         this.search = new SearchPanelState(state);
         this.search.setName("Search");
-        this.appState.addPanel(this.search, false);
+        this.appState.addPanel(this.search, false, false);
 
         this.layout = new LayoutPanelState(state);
         this.layout.setName("Tabs");
-        this.appState.addPanel(this.layout, false);
+        this.appState.addPanel(this.layout, false, false);
 
         this.settings = new SettingsState(state);
         this.settings.setName("Settings");
-        this.appState.addPanel(this.settings, false);
+        this.appState.addPanel(this.settings, false, false);
 
         this.tabs = [
             {
                 icon: "BulletedTreeList",
                 name: this.root.getName(),
                 panel: this.root,
+            },
+            {
+                icon: "Info",
+                name: "Info",
+                panel: this.search,
             },
             {
                 icon: "search",
@@ -59,11 +64,6 @@ export class SpecialTabsState {
                 icon: "Settings",
                 name: this.settings.getName(),
                 panel: this.settings,
-            },
-            {
-                icon: "Info",
-                name: "Info",
-                panel: this.search,
             },
         ];
     }

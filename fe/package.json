@@ -26,16 +26,18 @@
         "@fluentui/react": "^8.110.5",
         "@fluentui/react-hooks": "^8.6.14",
         "@fluentui/react-theme-provider": "^0.18.5",
+        "color": "^4.2.3",
         "model-react": "^4.0.2",
         "parsimmon": "^1.18.1",
         "react": "^17.0.1",
         "react-accessible-treeview": "^2.6.1",
         "react-dom": "^17.0.1",
         "react-resizable-panels": "^0.0.53",
-        "uuid": "^9.0.0"
+        "uuid": "^9.0.0",
+        "vis-network": "^9.1.6"
     },
     "devDependencies": {
-        "@types/color": "^3.0.1",
+        "@types/color": "^3.0.3",
         "@types/parsimmon": "^1.10.6",
         "@types/react": "^17.0.0",
         "@types/react-dom": "^17.0.0",

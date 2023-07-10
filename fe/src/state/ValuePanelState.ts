@@ -1,11 +1,11 @@
 import {DataCacher, Field, IDataHook} from "model-react";
 import {IEntry, IVal} from "../_types/IVal";
-import {v4 as uuid} from "uuid";
 import {IValNode} from "../_types/IValNode";
 import {PanelState} from "./PanelState";
 import {IValuePanelSerialization} from "./_types/IValuePanelSerialization";
 import {BaseValueTypeState} from "./valueTypes/BaseValueTypeState";
 import {PlainValueState} from "./valueTypes/PlainValueState";
+import {GraphValueState} from "./valueTypes/GraphValueState";
 
 /**
  * The state associated to a single shown panel
@@ -20,7 +20,7 @@ export class ValuePanelState extends PanelState {
         for (let node of this.valueNodes.get(h)) out.set(node.id, node);
         return out;
     });
-    public readonly value = new DataCacher<IVal | IEntry>(
+    public readonly value = new DataCacher<IVal | IEntry | null>(
         h => this.valueNodes.get(h)[1]?.value ?? null
     );
 
@@ -35,7 +35,7 @@ export class ValuePanelState extends PanelState {
     public constructor(valueNodes: IValNode[]) {
         super();
         this.valueNodes.set(valueNodes);
-        this.types = [new PlainValueState(this)];
+        this.types = [new PlainValueState(this), new GraphValueState(this)];
         this.selectedType = new Field(this.types[0]);
     }
 
@@ -155,6 +155,9 @@ export class ValuePanelState extends PanelState {
             const type = this.types.find(type => type.type == typeData.type);
             if (!type) return;
             type.deserialize(typeData);
+        });
+        this.types.find(type => {
+            if (type.type == data.selectedType) this.selectType(type);
         });
     }
 }

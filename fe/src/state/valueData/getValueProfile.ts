@@ -1,11 +1,26 @@
 import {IValNode} from "../../_types/IValNode";
 import {merge} from "../../utils/deepMerge";
 import {nonNullFilter} from "../../utils/nonNullFilter";
+import {ISpecialConstrData} from "../../value/_types/ISpecialConstrData";
+import {getSpecialConstrName} from "../../value/getSpecialConstrName";
+import {specialConstructors} from "../../value/specialConstructors";
 import {ISettings} from "../_types/ISettings";
 import {TDeepPartial} from "../_types/TDeepPartial";
 import {IProfileValueData} from "./_types/IProfileValueData";
 import {getConstrField} from "./util/getConstrField";
 import {getValNumber} from "./util/getValNumber";
+
+/** Data about profile constructors */
+export const profileConstrData = {
+    name: getSpecialConstrName("profile"),
+    type: "siteControls",
+} satisfies ISpecialConstrData;
+
+/** Data about settings constructors */
+export const settingsConstrData = {
+    name: getSpecialConstrName("settings"),
+    type: "siteControls",
+} satisfies ISpecialConstrData;
 
 /**
  * Retrieves the settings/profile data to load according tot he input value
@@ -36,15 +51,22 @@ function getProfileInput(node: IValNode): null | IProfileValueData {
     const value = node.value;
     if ("key" in value) return null;
     if (value.type != "constr") return null;
-    if (value.name != "VProfile") return null;
+    if (value.name != profileConstrData.name) return null;
 
     const selected = getConstrField(value, "name", "string")?.valuePlain;
     const init = getConstrField(value, "init", "string")?.valuePlain;
 
     let update: TDeepPartial<ISettings> | undefined = undefined;
     const settings = getConstrField(value, "settings", "constr");
-    if (settings?.name == "VSettings") {
+    if (settings?.name == settingsConstrData.name) {
         update = {
+            layout: {
+                deleteUnusedPanels: getConstrField(
+                    settings,
+                    "deleteUnusedPanels",
+                    "boolean"
+                )?.value,
+            },
             text: {
                 highlightIntensity: getValNumber(
                     getConstrField(settings, "highlightIntensity", "number"),

@@ -7,6 +7,7 @@ import {IPlainValueSerialization} from "./_types/IPlainValueSerialization";
  */
 export class PlainValueState extends BaseValueTypeState {
     public type = "plain";
+    public description = {name: "Text", icon: "FabricTextHighlight"};
 
     /** @override */
     public isApplicable(hook?: IDataHook): boolean {

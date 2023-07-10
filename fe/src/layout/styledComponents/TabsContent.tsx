@@ -30,6 +30,7 @@ export const TabTarget: FC<{selected: boolean; element: HTMLElement}> = ({
                 flexGrow: 1,
                 flexShrink: 1,
                 minHeight: 0,
+                position: "relative",
                 display: selected ? "flex" : "none",
                 justifyItems: "stretch",
                 "&>div": {

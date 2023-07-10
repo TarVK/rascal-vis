@@ -30,6 +30,9 @@ module.exports = env => ({
     },
     resolve: {
         extensions: [".tsx", ".ts", ".js", ".txt"],
+        alias: {
+            "vis-network": "vis-network/standalone",
+        },
     },
     output: {
         filename: "bundle.js",

@@ -10,6 +10,8 @@ import {TextValueSettings} from "./TextValueSettings";
 import {SearchSettings} from "./SearchSettings";
 import {css} from "@emotion/css";
 import {SettingsSectionContainer} from "./SettingsSectionContainer";
+import {LayoutSettings} from "./LayoutSettings";
+import {GraphValueSettings} from "./GraphValueSettings";
 
 export const SettingsPanel: FC<{panel: SettingsState; state: AppState}> = ({
     panel,
@@ -22,11 +24,9 @@ export const SettingsPanel: FC<{panel: SettingsState; state: AppState}> = ({
             <SettingsProfileSelection panel={panel} state={state} />
             <div style={{flexGrow: 1}}>
                 <PanelContainer className={css({overflow: "auto"})}>
-                    <SettingsSectionContainer title="Layout">
-                        Note that data about the layout and individual tabs is also saved
-                        per profile
-                    </SettingsSectionContainer>
+                    <LayoutSettings panel={panel} state={state} />
                     <TextValueSettings panel={panel} state={state} />
+                    <GraphValueSettings panel={panel} state={state} />
                     <SearchSettings panel={panel} state={state} />
                 </PanelContainer>
             </div>
