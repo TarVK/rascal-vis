@@ -6,6 +6,7 @@ import {PanelState} from "../../state/PanelState";
 import {FontIcon, useTheme} from "@fluentui/react";
 import {useDragStart} from "../../utils/useDragStart";
 
+// TODO: finish (if I want to keep it)
 export const LayoutPanel: FC<{panel: LayoutPanelState; state: AppState}> = ({
     panel,
     state,

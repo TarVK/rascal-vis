@@ -6,6 +6,7 @@ import {useId} from "@fluentui/react-hooks";
 import {SpecialTabsState} from "./state/SpecialTabsState";
 import {useDragStart} from "./utils/useDragStart";
 import {css} from "@emotion/css";
+import {StyledTooltipHost} from "./components/StyledToolTipHost";
 
 const size = 50;
 export const Sidebar: FC = () => {
@@ -72,11 +73,11 @@ export const SidebarButton: FC<{
     });
 
     return (
-        <TooltipHost
+        <StyledTooltipHost
             content={name}
             directionalHint={DirectionalHint.rightCenter}
             id={tooltipId}>
             <div ref={ref}>{iconEl}</div>
-        </TooltipHost>
+        </StyledTooltipHost>
     );
 };

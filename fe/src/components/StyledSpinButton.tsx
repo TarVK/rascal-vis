@@ -1,7 +1,9 @@
 import React, {FC} from "react";
 import {ISpinButtonProps, SpinButton, mergeStyleSets, useTheme} from "@fluentui/react";
 
-export const StyledSpinButton: FC<ISpinButtonProps> = props => {
+export const StyledSpinButton: FC<
+    ISpinButtonProps & {backgroundColor?: string}
+> = props => {
     const theme = useTheme();
     const style: ISpinButtonProps["styles"] = {
         spinButtonWrapper: {
@@ -11,7 +13,7 @@ export const StyledSpinButton: FC<ISpinButtonProps> = props => {
             flexGrow: 1,
         },
         input: {
-            background: theme.palette.neutralLighterAlt,
+            background: props.backgroundColor ?? theme.palette.neutralLighterAlt,
             width: 0,
         },
         arrowButtonsContainer: {

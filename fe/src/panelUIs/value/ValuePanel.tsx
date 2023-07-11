@@ -14,6 +14,7 @@ import {
 } from "@fluentui/react";
 import {useId} from "@fluentui/react-hooks";
 import {PlainValueState} from "../../state/valueTypes/PlainValueState";
+import {StyledTooltipHost} from "../../components/StyledToolTipHost";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,
@@ -60,7 +61,7 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
                         zIndex: 1,
                         backgroundColor: theme.palette.neutralLighter,
                     }}>
-                    <TooltipHost
+                    <StyledTooltipHost
                         content="Switch visualization"
                         id={visualizationSelectionId}
                         directionalHint={DirectionalHint.bottomLeftEdge}>
@@ -70,7 +71,7 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
                             aria-label="Switch visualization"
                             menuProps={selectVisualizationProps}
                         />
-                    </TooltipHost>
+                    </StyledTooltipHost>
                 </div>
             )}
             {visualization}

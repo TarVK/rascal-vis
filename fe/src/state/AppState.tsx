@@ -3,7 +3,6 @@ import {DataCacher, Field, IDataHook} from "model-react";
 import {IEntry, IVal, IValPlain} from "../_types/IVal";
 import {value} from "../value/parser";
 import {Failure, Result} from "parsimmon";
-import {dataAddress} from "../dataAddress";
 import {fixReferences} from "../value/fixReferences";
 import {ValuePanelState} from "./ValuePanelState";
 import {LayoutState} from "../layout/LayoutState";
@@ -82,31 +81,24 @@ export class AppState {
     });
 
     /**
-     * Tries to load the latest value from the server
-     */
-    public async loadValue(): Promise<void> {
-        try {
-            const dataResponse = await fetch(dataAddress);
-            const dataText = await dataResponse.text();
-            if (this.valueText.get() != dataText) this.setValueText(dataText);
-        } catch {
-            this.valueText.set(null);
-        }
-    }
-
-    /**
      * Sets the value text
      * @param text The text to be used
      */
-    public setValueText(text: string): void {
+    public setValueText(text: string | null): void {
         this.valueText.set(text);
         const valueNodes = this.valueNodes.get();
-        if (valueNodes) {
-            const nodes = this.getNodes(valueNodes[0]);
-            if (!nodes) return;
+        const nodes = !valueNodes ? [] : this.getNodes(valueNodes[0]) ?? [];
 
-            this.initializeStateFromValue(nodes);
-        }
+        this.initializeStateFromValue(nodes);
+    }
+
+    /**
+     * Retrieves the current value's text
+     * @param hook The hook to subscribe to changes
+     * @returns the current value text
+     */
+    public getValueText(hook?: IDataHook): string | null {
+        return this.valueText.get(hook);
     }
 
     /**
@@ -114,15 +106,13 @@ export class AppState {
      */
     public reloadTabValues() {
         const valueNodes = this.valueNodes.get();
-        if (valueNodes) {
-            const nodes = this.getNodes(valueNodes[0]);
-            if (!nodes) return;
 
-            const map: Map<NodeId, IValNode> = new Map();
-            for (let node of nodes) map.set(node.id, node);
+        const nodes = !valueNodes ? [] : this.getNodes(valueNodes[0]) ?? [];
 
-            this.loadTabValues(nodes, map);
-        }
+        const map: Map<NodeId, IValNode> = new Map();
+        for (let node of nodes) map.set(node.id, node);
+
+        this.loadTabValues(nodes, map);
     }
 
     /**
@@ -136,7 +126,12 @@ export class AppState {
         // Load the profile data
         const profileData = getValueProfile(nodes);
         const settings = this.specialTabs.settings;
-        if (profileData.selected && settings.getProfileName() != profileData.selected) {
+        const valueInput = this.specialTabs.input;
+        if (
+            profileData.selected &&
+            settings.getProfileName() != profileData.selected &&
+            valueInput.getInputSourceType() == "server" // Don't load it on manual, since this may prevent a profile from being selected alltogether since it could instantly change the profile
+        ) {
             this.saveProfile();
             const profiles = settings.getProfiles();
             const profile = profiles.find(({name}) => name == profileData.selected);
@@ -172,23 +167,21 @@ export class AppState {
      * @param map The node map for lookups
      */
     protected loadTabValues(nodes: IValNode[], map: Map<NodeId, IValNode>) {
+        const panels = Object.values(this.panels.get()).filter(
+            (panel): panel is ValuePanelState =>
+                panel instanceof ValuePanelState && panel.getID() != "root"
+        );
+        const nonAssignedPanels = new Set<ValuePanelState>(panels);
+
         const tabsData = getValueTabs(nodes, map);
-        const panels = Object.values(this.panels.get());
         const layout = this.layoutState;
         const tabPanels = layout.getAllTabPanels();
         for (let tabData of tabsData) {
             let panel: ValuePanelState | undefined | null = panels.find(
-                (panel): panel is ValuePanelState =>
-                    panel.getName() == tabData.name &&
-                    panel.getID() != "root" &&
-                    panel instanceof ValuePanelState
+                panel => panel.getName() == tabData.name
             );
             if (!panel) {
-                const copy = panels.find(
-                    (panel): panel is ValuePanelState =>
-                        panel.getName() == tabData.init &&
-                        panel instanceof ValuePanelState
-                );
+                const copy = panels.find(panel => panel.getName() == tabData.init);
 
                 // Initialize from another panel
                 if (copy) {
@@ -202,7 +195,6 @@ export class AppState {
                     panel.deserialize(copyData);
                     if (parent) layout.openTab(parent.id, panel.getID());
                 } else {
-                    // Create a new panel
                     panel = this.openNode(tabData.node);
                 }
             } else {
@@ -210,30 +202,31 @@ export class AppState {
                 const nodes = this.getNodes(tabData.node);
                 if (!nodes) continue;
                 panel.setValueNodes(nodes);
+                nonAssignedPanels.delete(panel);
             }
             if (panel) panel.setName(tabData.name);
         }
 
         // Assign remaining panels according to ids
-        for (let panel of Object.values(this.panels.get())) {
-            if (!(panel instanceof ValuePanelState)) continue;
-            if (panel.getValueNodes().length != 0) continue;
-
+        for (let panel of nonAssignedPanels) {
             const id = panel.getSourceNodeId();
             const node = map.get(id);
             if (!node) continue;
             const valNodes = this.getNodes(node);
             if (!valNodes) continue;
             panel.setValueNodes(valNodes);
+            nonAssignedPanels.delete(panel);
+        }
+
+        // Set values of non assigned panels
+        for (let panel of nonAssignedPanels) {
+            panel.setValueNodes([]);
         }
 
         // Close unused panels
         if (this.getSettings().layout.deleteUnusedPanels)
-            for (let panel of Object.values(this.panels.get())) {
-                if (
-                    panel instanceof ValuePanelState &&
-                    panel.getValueNodes().length == 0
-                ) {
+            for (let panel of nonAssignedPanels) {
+                if (panel.getValueNodes().length == 0) {
                     this.removePanel(panel);
                 }
             }

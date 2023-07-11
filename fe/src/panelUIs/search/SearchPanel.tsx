@@ -24,6 +24,7 @@ import {useHighlightStyle} from "../value/text/useHighlightStyle";
 import {ValueNode} from "../value/text/TextPanel";
 import {css} from "@emotion/css";
 import {useScrollbarStyle} from "../../utils/useScrollbarStyle";
+import {StyledTooltipHost} from "../../components/StyledToolTipHost";
 
 export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
     panel,
@@ -90,7 +91,7 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                         onSearch={setSearch}
                         onBlur={setSearch}
                     />
-                    <TooltipHost content="Pattern search" id={tooltipId}>
+                    <StyledTooltipHost content="Pattern search" id={tooltipId}>
                         <IconButton
                             style={{marginLeft: -32, height: 30}}
                             iconProps={{iconName: "puzzle"}}
@@ -98,7 +99,7 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                             onClick={toggleType}
                             checked={panel.getSearchType(h) == "value"}
                         />
-                    </TooltipHost>
+                    </StyledTooltipHost>
                 </div>
                 {error && (
                     <Label style={{color: theme.semanticColors.errorText}}>{error}</Label>

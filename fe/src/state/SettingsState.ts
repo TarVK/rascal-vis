@@ -175,15 +175,18 @@ export class SettingsState extends PanelState {
         const layout = this.appState.getLayoutState();
         layout.loadLayout(profile.layout);
 
+        // Create all other panels before initializing the special ones
         profile.panels.forEach(data => {
             const specialTab = tabs.find(({panel}) => panel.getID() == data.id);
-            if (specialTab) specialTab.panel.deserialize(data);
-            else {
+            if (!specialTab) {
                 const panelState = createPanel(data as any);
                 if (panelState) this.appState.addPanel(panelState, false);
             }
         });
-        this.appState.reloadTabValues();
+        profile.panels.forEach(data => {
+            const specialTab = tabs.find(({panel}) => panel.getID() == data.id);
+            if (specialTab) specialTab.panel.deserialize(data);
+        });
     }
 
     /**

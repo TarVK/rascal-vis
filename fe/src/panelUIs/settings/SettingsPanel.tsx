@@ -16,20 +16,16 @@ import {GraphValueSettings} from "./GraphValueSettings";
 export const SettingsPanel: FC<{panel: SettingsState; state: AppState}> = ({
     panel,
     state,
-}) => {
-    const [h] = useDataHook();
-
-    return (
-        <div style={{display: "flex", flexDirection: "column", height: "100%"}}>
-            <SettingsProfileSelection panel={panel} state={state} />
-            <div style={{flexGrow: 1}}>
-                <PanelContainer className={css({overflow: "auto"})}>
-                    <LayoutSettings panel={panel} state={state} />
-                    <TextValueSettings panel={panel} state={state} />
-                    <GraphValueSettings panel={panel} state={state} />
-                    <SearchSettings panel={panel} state={state} />
-                </PanelContainer>
-            </div>
+}) => (
+    <div style={{display: "flex", flexDirection: "column", height: "100%"}}>
+        <SettingsProfileSelection panel={panel} state={state} />
+        <div style={{flexGrow: 1, flexShrink: 1, minHeight: 0}}>
+            <PanelContainer className={css({overflow: "auto"})}>
+                <LayoutSettings panel={panel} state={state} />
+                <TextValueSettings panel={panel} state={state} />
+                <GraphValueSettings panel={panel} state={state} />
+                <SearchSettings panel={panel} state={state} />
+            </PanelContainer>
         </div>
-    );
-};
+    </div>
+);

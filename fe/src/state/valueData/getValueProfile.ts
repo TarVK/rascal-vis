@@ -67,6 +67,12 @@ function getProfileInput(node: IValNode): null | IProfileValueData {
                     "boolean"
                 )?.value,
             },
+            graph: {
+                sharpness: getValNumber(
+                    getConstrField(settings, "graphSharpness", "number"),
+                    {min: 0.5, max: 3}
+                ),
+            },
             text: {
                 highlightIntensity: getValNumber(
                     getConstrField(settings, "highlightIntensity", "number"),

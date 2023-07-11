@@ -1,4 +1,5 @@
 import {AppState} from "./AppState";
+import {InputPanelState} from "./InputPanelstate";
 import {LayoutPanelState} from "./LayoutPanelState";
 import {PanelState} from "./PanelState";
 import {SearchPanelState} from "./SearchPanelState";
@@ -13,6 +14,7 @@ export class SpecialTabsState {
 
     public root: ValuePanelState;
     public search: SearchPanelState;
+    public input: InputPanelState;
     public layout: LayoutPanelState;
     public settings: SettingsState;
 
@@ -30,6 +32,10 @@ export class SpecialTabsState {
         this.search = new SearchPanelState(state);
         this.search.setName("Search");
         this.appState.addPanel(this.search, false, false);
+
+        this.input = new InputPanelState(state);
+        this.input.setName("Input");
+        this.appState.addPanel(this.input, false, false);
 
         this.layout = new LayoutPanelState(state);
         this.layout.setName("Tabs");
@@ -49,6 +55,11 @@ export class SpecialTabsState {
                 icon: "Info",
                 name: "Info",
                 panel: this.search,
+            },
+            {
+                icon: "FileCode",
+                name: "Source",
+                panel: this.input,
             },
             {
                 icon: "search",

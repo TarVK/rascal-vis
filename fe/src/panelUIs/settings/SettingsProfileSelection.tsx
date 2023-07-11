@@ -22,6 +22,7 @@ import {useDragStart} from "../../utils/useDragStart";
 import {SettingsState} from "../../state/SettingsState";
 import {useDataHook} from "model-react";
 import {useId} from "@fluentui/react-hooks";
+import {StyledTooltipHost} from "../../components/StyledToolTipHost";
 
 export const SettingsProfileSelection: FC<{panel: SettingsState; state: AppState}> = ({
     panel,
@@ -54,7 +55,7 @@ export const SettingsProfileSelection: FC<{panel: SettingsState; state: AppState
             <div
                 style={{
                     boxShadow: "rgb(87 87 87 / 35%) 0px 0px 0px 1px inset",
-                    height: 5,
+                    minHeight: 5,
                 }}
             />
             <div
@@ -91,23 +92,23 @@ export const SettingsProfileSelection: FC<{panel: SettingsState; state: AppState
                     }))}
                 />
                 {panel.getProfiles(h).length > 1 && (
-                    <TooltipHost content={"Delete profile"} id={deleteId}>
+                    <StyledTooltipHost content={"Delete profile"} id={deleteId}>
                         <IconButton
                             iconProps={{iconName: "cancel"}}
                             aria-label="Delete profile"
                             aria-describedby={deleteId}
                             onClick={() => setShowDeleteConfirmation(true)}
                         />
-                    </TooltipHost>
+                    </StyledTooltipHost>
                 )}
-                <TooltipHost content={"Create profile"} id={addId}>
+                <StyledTooltipHost content={"Create profile"} id={addId}>
                     <IconButton
                         iconProps={{iconName: "add"}}
                         aria-label="Add profile"
                         aria-describedby={addId}
                         onClick={createProfile}
                     />
-                </TooltipHost>
+                </StyledTooltipHost>
                 <Dialog
                     hidden={!showDeleteConfirmation}
                     onDismiss={() => setShowDeleteConfirmation(false)}

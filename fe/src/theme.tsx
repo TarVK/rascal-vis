@@ -25,4 +25,7 @@ export const darkTheme = createTheme({
         black: "#fdfdfd",
         white: "#272822",
     },
+    semanticColors: {
+        errorText: "#ff6565",
+    },
 });

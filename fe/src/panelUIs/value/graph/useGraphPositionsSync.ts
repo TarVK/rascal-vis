@@ -31,9 +31,7 @@ export function useGraphPositionsSync(
         ignoreIdData.current.updated = ignoreIdData.current.set;
         if (ignore) return;
 
-        console.log("set");
         positions.forEach(({id, position}) => {
-            // const canvasPos = network.dom
             network.moveNode(id.id, position.x, position.y);
         });
     }, [network, positions]);

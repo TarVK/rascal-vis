@@ -13,13 +13,14 @@ import {ValuePanel} from "./panelUIs/value/ValuePanel";
 import {SearchPanel} from "./panelUIs/search/SearchPanel";
 import {LayoutPanel} from "./panelUIs/layout/LayoutPanel";
 import {SettingsPanel} from "./panelUIs/settings/SettingsPanel";
+import {InputPanel} from "./panelUIs/input/InputPanel";
 
 export const App: FC = () => {
     const state = usePersistentMemo(() => {
         const state = new AppState();
         (window as any).state = state;
         state.loadProfilesData();
-        state.setValueText(val2);
+        // state.setValueText(val2);
         return state;
     }, []);
     useEffect(() => {
@@ -47,4 +48,5 @@ const components: IPanelComponents = {
     search: SearchPanel,
     layout: LayoutPanel,
     settings: SettingsPanel,
+    input: InputPanel,
 };

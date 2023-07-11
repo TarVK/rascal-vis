@@ -14,15 +14,17 @@ export function merge<T extends Object>(
     return {
         ...a,
         ...Object.fromEntries(
-            Object.entries(b).map(([key, val]) => {
-                if (
-                    key in a &&
-                    typeof (a as any)[key] == "object" &&
-                    typeof val == "object"
-                )
-                    return [key, merge((a as any)[key], val)];
-                return [key, val];
-            })
+            Object.entries(b)
+                .filter(([key, val]) => val != undefined)
+                .map(([key, val]) => {
+                    if (
+                        key in a &&
+                        typeof (a as any)[key] == "object" &&
+                        typeof val == "object"
+                    )
+                        return [key, merge((a as any)[key], val)];
+                    return [key, val];
+                })
         ),
     };
 }
