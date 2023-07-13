@@ -2,11 +2,14 @@ import React, {FC, useCallback, createContext, useMemo, useContext} from "react"
 import {AppState} from "../../../state/AppState";
 import {IVal} from "../../../_types/IVal";
 import {IHoverHandlers} from "./_types/IHoverHandler";
+import {useDataHook} from "model-react";
 
 export const HoverContextProvider: FC<{state: AppState}> = ({state, children}) => {
+    const [h] = useDataHook();
+    const hoverHighlight = state.getSettings(h).text.hoverHighlightIntensity != 0;
     const onHover = useCallback(
-        (val: IVal | null) => state.setHoverHighlight(val),
-        [state]
+        (val: IVal | null) => hoverHighlight && state.setHoverHighlight(val),
+        [state, hoverHighlight]
     );
     const hoverHandlers = useMemo<IHoverHandlers>(() => {
         const hoverStack: IVal[] = [];

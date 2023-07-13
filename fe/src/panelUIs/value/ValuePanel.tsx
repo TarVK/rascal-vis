@@ -15,6 +15,8 @@ import {
 import {useId} from "@fluentui/react-hooks";
 import {PlainValueState} from "../../state/valueTypes/PlainValueState";
 import {StyledTooltipHost} from "../../components/StyledToolTipHost";
+import {GrammarValueState} from "../../state/valueTypes/GrammarValueState";
+import {GrammarPanel} from "./grammar/GrammarPanel";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,
@@ -30,6 +32,8 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
             <GraphPanel state={state} graphState={type} />
         ) : type instanceof PlainValueState ? (
             <TextPanel state={state} panel={panel} textState={type} />
+        ) : type instanceof GrammarValueState ? (
+            <GrammarPanel state={state} grammarState={type} />
         ) : (
             <></>
         );

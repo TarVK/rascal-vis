@@ -31,7 +31,7 @@ export const App: FC = () => {
         <StateContext.Provider value={state}>
             <div style={{display: "flex", height: "100%"}}>
                 <Sidebar />
-                <div style={{flexGrow: 1}}>
+                <div style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}>
                     <DefaultLayout
                         state={state.getLayoutState()}
                         getContent={(id, hook) => state.getPanelUI(id, components, hook)}

@@ -25,8 +25,8 @@ import {getValueTabs} from "./valueData/getValueTabs";
  * Representing all application state data
  */
 export class AppState {
-    protected highlighting = new Field<IVal | null>(null);
-    protected hoverHighlighting = new Field<IVal | null>(null);
+    protected highlighting = new Field<IVal | IEntry | null>(null);
+    protected hoverHighlighting = new Field<IVal | IEntry | null>(null);
 
     protected valueText = new Field<null | string>(null);
     protected parseData = new DataCacher<null | Result<IValPlain>>(h => {
@@ -458,7 +458,7 @@ export class AppState {
      * Sets the given value to be highlighted in the UI
      * @param value The value to be highlighted
      */
-    public setHighlight(value: IVal | null): void {
+    public setHighlight(value: IVal | IEntry | null): void {
         this.highlighting.set(value);
     }
 
@@ -466,7 +466,7 @@ export class AppState {
      * Sets the given value to be hover highlighted in the UI
      * @param value The value to be hover highlighted
      */
-    public setHoverHighlight(value: IVal | null): void {
+    public setHoverHighlight(value: IVal | IEntry | null): void {
         this.hoverHighlighting.set(value);
     }
 
@@ -475,7 +475,7 @@ export class AppState {
      * @param hook The hook to subscribe to changes
      * @returns The value to be highlighted
      */
-    public getHighlight(hook?: IDataHook): IVal | null {
+    public getHighlight(hook?: IDataHook): IVal | IEntry | null {
         return this.highlighting.get(hook);
     }
 
@@ -484,7 +484,7 @@ export class AppState {
      * @param hook The hook to subscribe to changes
      * @returns The value to be hover highlighted
      */
-    public getHoverHighlight(hook?: IDataHook): IVal | null {
+    public getHoverHighlight(hook?: IDataHook): IVal | IEntry | null {
         return this.hoverHighlighting.get(hook);
     }
 

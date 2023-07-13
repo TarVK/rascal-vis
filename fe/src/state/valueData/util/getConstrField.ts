@@ -1,4 +1,5 @@
 import {IConstr, IVal} from "../../../_types/IVal";
+import {TGetType} from "../../../value/_types/TGetType";
 
 /**
  * Retrieves the field value with the given name and type if it exists
@@ -30,11 +31,3 @@ export function getConstrValField(constr: IConstr, fieldName: string): null | IV
     if (match) return match.value as any;
     return null;
 }
-
-type TGetType<N extends IVal["type"]> = [IVal] extends [infer U]
-    ? U extends IVal
-        ? U["type"] extends N
-            ? U
-            : never
-        : never
-    : never;

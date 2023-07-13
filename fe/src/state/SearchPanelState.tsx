@@ -285,6 +285,7 @@ const Show: FC<{element: IValNode}> = ({element}) => {
             onClick={e => {
                 e.stopPropagation();
                 state.revealNodes([element]);
+                if (!("key" in element.value)) state.setHighlight(element.value);
             }}>
             Show
         </Link>

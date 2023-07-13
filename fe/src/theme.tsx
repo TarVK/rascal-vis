@@ -1,4 +1,6 @@
-import {createTheme} from "@fluentui/react";
+import {CSSObject} from "@emotion/css";
+import {ITheme, createTheme} from "@fluentui/react";
+import Color from "color";
 
 export const darkTheme = createTheme({
     palette: {
@@ -27,5 +29,39 @@ export const darkTheme = createTheme({
     },
     semanticColors: {
         errorText: "#ff6565",
+    },
+});
+
+export const highlightTheme = (theme: ITheme): CSSObject => ({
+    ".identifier": {
+        color: "white",
+    },
+    ".glyph, .name, .location, .arrow, .prodLabel, .symLabelName": {
+        color: "#bbbbbb",
+    },
+    ".string, .lit, .cilit": {
+        color: "#dadb74",
+    },
+    ".number, .boolean, .escaped": {
+        color: "#ae81ff",
+    },
+    ".collapse, .count, .label": {
+        color: "#747474",
+    },
+    ".context": {
+        color: "#747474",
+    },
+    ".count, .label, .prodLabel, .symLabelName": {
+        fontStyle: "italic",
+    },
+    ".greyOut, .greyOut *": {
+        color: "#bbbbbb !important",
+    },
+    ".highlight": {
+        color: theme.palette.themeDark,
+    },
+    ".keyword": {
+        color: new Color(theme.palette.themeSecondary).lighten(0.4).toString(),
+        whiteSpace: "nowrap",
     },
 });

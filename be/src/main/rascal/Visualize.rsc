@@ -78,25 +78,29 @@ public data RascalVisControls
 }
 public data RascalVisSettings = VSettings(
     // Whether to delete panels that are no longer used
-    bool deleteUnusedPanels=true,
+    bool layoutDeleteUnusedPanels=true,
     // The highlighting intensity when hovering over a value
-    real hoverHighlightIntensity=0.3,
+    real textHoverHighlightIntensity=0.3,
     // The highlighting intensity when fully selecting a value
-    real highlightIntensity=1,
+    real textHighlightIntensity=1,
     // Whether to show the sizes of sets in front of the set
-    bool showSetSize=true,
+    bool textShowSetSize=true,
     // Whether to show the sizes of lists in front of the lists
-    bool showListSize=true,
+    bool textShowListSize=true,
     // Whether to show the sizes of tuples in front of the tuples
-    bool showTupleSize=false,
+    bool textShowTupleSize=false,
     // Whether to show the sizes of maps in front of the map
-    bool showMapSize=false,
+    bool textShowMapSize=false,
     // The sharpness of the graph to render
     real graphSharpness=1.5,
     // The number of results to load on the initial search
-    int initialSearchLoadCount=50,
+    int searchInitialLoadCount=50,
     // The number of items to load when pressing load more
-    int expandSearchLoadCount=50
+    int searchExpandLoadCount=50,
+    // Whether to show layout symbols in the grammar
+    bool grammarShowLayout=false,
+    // The minimum lhs width in the grammar, for better alignment
+    int grammarAlignWidth=150
 );
 
 @doc {

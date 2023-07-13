@@ -61,7 +61,9 @@ export const TextPanel: FC<{
     return (
         <PanelContainer
             ref={sizeRef}
-            className={`${treeStyleClass} ${highlightStyleClass}`}>
+            className={`${treeStyleClass} ${highlightStyleClass} ${css({
+                paddingRight: 70,
+            })}`}>
             <HoverContextProvider state={state}>
                 <ResettingHighlighCache sizeRef={sizeRef}>
                     <TreeView
@@ -125,7 +127,7 @@ export const ValueNode: (props: INodeRendererProps) => ReactNode = ({
                 iconProps: {iconName: "OpenFolderHorizontal"},
                 onClick: () => {
                     state.reveal(value);
-                    if (!("key" in value)) state.setHighlight(value);
+                    state.setHighlight(value);
                 },
             }
         );

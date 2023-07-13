@@ -12,6 +12,7 @@ import {css} from "@emotion/css";
 import {SettingsSectionContainer} from "./SettingsSectionContainer";
 import {LayoutSettings} from "./LayoutSettings";
 import {GraphValueSettings} from "./GraphValueSettings";
+import {GrammarValueSettings} from "./GrammarValueSettings";
 
 export const SettingsPanel: FC<{panel: SettingsState; state: AppState}> = ({
     panel,
@@ -24,6 +25,7 @@ export const SettingsPanel: FC<{panel: SettingsState; state: AppState}> = ({
                 <LayoutSettings panel={panel} state={state} />
                 <TextValueSettings panel={panel} state={state} />
                 <GraphValueSettings panel={panel} state={state} />
+                <GrammarValueSettings panel={panel} state={state} />
                 <SearchSettings panel={panel} state={state} />
             </PanelContainer>
         </div>

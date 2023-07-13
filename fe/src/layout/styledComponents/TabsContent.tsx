@@ -21,7 +21,7 @@ export const TabTarget: FC<{selected: boolean; element: HTMLElement}> = ({
         if (!el) return;
 
         el.appendChild(element);
-    }, [ref.current]);
+    }, []);
 
     return (
         <div

@@ -46,6 +46,10 @@ export class SettingsState extends PanelState {
                 tuple: true,
             },
         },
+        grammar: {
+            showLayout: false,
+            alignWidth: 150,
+        },
     });
 
     public constructor(state: AppState) {

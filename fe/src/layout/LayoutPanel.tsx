@@ -1,4 +1,4 @@
-import React, {FC, useRef, useMemo} from "react";
+import React, {FC, useRef, useMemo, useEffect} from "react";
 import {LayoutState} from "./LayoutState";
 import {IPanelData, IPanelSplitData, IPanelTabsData} from "./_types/IPanelData";
 import {
@@ -17,6 +17,8 @@ import {DropArea} from "./styledComponents/DropArea";
 import {IDropPanelSide} from "./_types/IDropSide";
 import {v4 as uuid} from "uuid";
 import {usePersistentMemo} from "../utils/usePersistentMemo";
+import {useChangeID} from "../utils/useChangeID";
+import {usePrevious} from "../utils/usePrevious";
 
 /**
  * The component for rendering a layout panel
@@ -38,8 +40,14 @@ export const LayoutSplitPanel: FC<{
     getContent: IContentGetter;
     components: ILayoutComponents;
 }> = ({state, panel, components, getContent}) => {
-    const [h] = useDataHook();
-    const key = usePersistentMemo(uuid, [state.getLayoutState(h)]);
+    // We need to force a new key sometimes, since panel groups apparently can bug out when the number of panels changes, so a new key fully resets them
+    const childIds = panel.panels.map(p => p.content.id);
+    const prevChildIds = usePrevious(childIds);
+    const key = useChangeID(
+        childIds.length != prevChildIds.length ||
+            childIds.some((value, i) => value != prevChildIds[i])
+    );
+
     return (
         <PanelGroup direction={panel.direction} ref={panel.handle} key={key}>
             {intersperseDynamic(
@@ -95,7 +103,10 @@ export const LayoutTabsPanel: FC<{
         state.batchChanges(() => {
             const dragging = state.getDraggingData();
             if (!dragging?.targetId) return;
-            if (dragging.targetId == beforeId && dragging.removeFromPanelId == panel.id)
+            if (
+                dragging.removeFromPanelId == panel.id &&
+                (dragging.targetId == beforeId || panel.tabs.length == 1)
+            )
                 return; // Nothing should change
             if (dragging.removeFromPanelId)
                 state.closeTab(dragging.removeFromPanelId, dragging.targetId);

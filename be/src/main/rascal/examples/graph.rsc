@@ -2,8 +2,6 @@ module examples::graph
 
 import Visualize;
 
-data MyData = myConstr(int smth);
-
 void main() {
     visualize(
         VGraph(

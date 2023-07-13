@@ -50,21 +50,25 @@ export function highlight(
         ),
         overflow: true,
     });
-    const handlers = "key" in value ? undefined : hoverHandler?.(value);
+    const handlers = hoverHandler?.(value);
 
     if ("key" in value) {
         if (remainingDepth == 0) return collapse();
         const {length: keyLength, el: keyEl, overflow: ko} = rec(value.key);
-        const {length: sepLength, el: sepEl} = baseSymbol(": ", "symbol");
+        const {length: sepLength, el: sepEl} = baseSymbol(": ", "glyph");
         const {length: valueLength, el: valueEl, overflow: vo} = rec(value.value);
         return {
             length: keyLength + sepLength + valueLength,
             el: (
-                <>
+                <span
+                    className="value"
+                    id={value.id + ""}
+                    onMouseEnter={handlers?.onEnter}
+                    onMouseLeave={handlers?.onLeave}>
                     {keyEl}
                     {sepEl}
                     {valueEl}
-                </>
+                </span>
             ),
             overflow: ko || vo,
         };
@@ -83,11 +87,11 @@ export function highlight(
             value.name,
             `identifier ${optGreyOut} ${optHighlight}`
         );
-        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
+        const {length: openLength, el: openEl} = baseSymbol("(", "glyph");
         const indexedChildren = value.children.map(rec);
         const namedChildren = value.namedChildren.map(({name, value}) => {
             const {length: nameLength, el: nameEl} = baseSymbol(name, "name");
-            const {length: sepLength, el: sepEl} = baseSymbol("=", "symbol");
+            const {length: sepLength, el: sepEl} = baseSymbol("=", "glyph");
             const {length: childLength, el: childEl, overflow} = rec(value);
             return {
                 length: nameLength + sepLength + childLength,
@@ -103,9 +107,9 @@ export function highlight(
         });
         const joinedChildren = join(
             [...indexedChildren, ...namedChildren],
-            baseSymbol(", ", "symbol")
+            baseSymbol(", ", "glyph")
         );
-        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
+        const {length: closeLength, el: closeEl} = baseSymbol(")", "glyph");
         return {
             length:
                 nameLength +
@@ -135,9 +139,9 @@ export function highlight(
             remainingDepth = 1;
         }
 
-        const {length: openLength, el: openEl} = baseSymbol("(", "symbol");
-        const {length: closeLength, el: closeEl} = baseSymbol(")", "symbol");
-        const joinedChildren = join(value.children.map(rec), baseSymbol(", ", "symbol"));
+        const {length: openLength, el: openEl} = baseSymbol("(", "glyph");
+        const {length: closeLength, el: closeEl} = baseSymbol(")", "glyph");
+        const joinedChildren = join(value.children.map(rec), baseSymbol(", ", "glyph"));
 
         const {length: countLength, el: countEl} = settings.showCollectionSizes[
             value.type
@@ -180,8 +184,8 @@ export function highlight(
             ? baseSymbol(`(${value.children.length})`, "count")
             : {length: 0, el: undefined};
 
-        const {length: openLength, el: openEl} = baseSymbol(brackets.o, "symbol");
-        const {length: closeLength, el: closeEl} = baseSymbol(brackets.c, "symbol");
+        const {length: openLength, el: openEl} = baseSymbol(brackets.o, "glyph");
+        const {length: closeLength, el: closeEl} = baseSymbol(brackets.c, "glyph");
 
         if (remainingDepth == 0) {
             // Still show the size and type, instead of only dots
@@ -204,7 +208,7 @@ export function highlight(
             };
         }
 
-        const joinedChildren = join(value.children.map(rec), baseSymbol(", ", "symbol"));
+        const joinedChildren = join(value.children.map(rec), baseSymbol(", ", "glyph"));
         return {
             length:
                 countLength +
@@ -232,7 +236,7 @@ export function highlight(
         const parts = value.value.map(part =>
             typeof part == "string"
                 ? baseSymbol(part, "raw")
-                : baseSymbol(part.text, part.type)
+                : baseSymbol("\\" + part.text, part.type)
         );
         return {
             length: parts.reduce((a, {length: b}) => a + b, 2), // 2 to account for the quotes

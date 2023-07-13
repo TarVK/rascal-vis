@@ -5,8 +5,8 @@ import {useDragStart} from "../../../utils/useDragStart";
 import {AppState} from "../../../state/AppState";
 import {ValueHighlight} from "./ValueHighlight";
 import {useTheme} from "@fluentui/react";
-import {highlightTheme} from "./highlightTheme";
 import {css} from "@emotion/css";
+import {highlightTheme} from "../../../theme";
 
 export function useValueDrag(element: INode, state: AppState) {
     const theme = useTheme();

@@ -2,8 +2,6 @@ module examples::controlsTabs
 
 import Visualize;
 
-data MyData = myConstr(int smth);
-
 void main() {
     visualize(
         {

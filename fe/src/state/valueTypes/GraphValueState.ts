@@ -78,8 +78,8 @@ export class GraphValueState extends BaseValueTypeState {
             !("key" in value) &&
             value.type == "constr" &&
             value.name == graphConstrData.name &&
-            value.children[0].type == "set" &&
-            value.children[1].type == "set"
+            value.children[0]?.type == "set" &&
+            value.children[1]?.type == "set"
         );
     }
 

@@ -117,7 +117,12 @@ const node = <T>(value: Parser<T>) =>
 const string = P.seq(
     P.string('"'),
     P.regex(/((?!\\.)[^"])+/)
-        .or(P.regex(/\\./).map(text => ({type: "escaped" as const, text})))
+        .or(
+            P.regex(/\\./).map(text => ({
+                type: "escaped" as const,
+                text: text.substring(1),
+            }))
+        )
         .many(),
     P.string('"')
 ).map(([_1, text, _2]) => ({
@@ -210,7 +215,12 @@ const regexPattern = P<IRegex>((input, i) => {
 const textPattern = P.seq(
     P.string("'"),
     P.regex(/((?!\\.)[^"])+/)
-        .or(P.regex(/\\./).map(text => ({type: "escaped" as const, text})))
+        .or(
+            P.regex(/\\./).map(text => ({
+                type: "escaped" as const,
+                text: text.substring(1),
+            }))
+        )
         .many(),
     P.string("'")
 ).map(([_1, text, _2]) => ({

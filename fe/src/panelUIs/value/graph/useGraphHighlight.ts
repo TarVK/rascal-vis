@@ -7,7 +7,7 @@ import {
     graphEdgeConstrData,
     graphNodeConstrData,
 } from "../../../state/valueTypes/GraphValueState";
-import {IVal} from "../../../_types/IVal";
+import {IEntry, IVal} from "../../../_types/IVal";
 
 /**
  * Sets up the value highlighting synchronization for the given network
@@ -30,8 +30,8 @@ export function useGraphHighlight(
         const highlightNodes: number[] = [];
         const highlightEdges: number[] = [];
 
-        function add(v: IVal | null): void {
-            const isConstr = v && v.type == "constr";
+        function add(v: IVal | IEntry | null): void {
+            const isConstr = v && !("key" in v) && v.type == "constr";
             if (isConstr) {
                 const isNode = v.name == graphNodeConstrData.name;
                 if (isNode) {

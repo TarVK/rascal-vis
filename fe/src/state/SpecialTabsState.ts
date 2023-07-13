@@ -57,7 +57,7 @@ export class SpecialTabsState {
                 panel: this.search,
             },
             {
-                icon: "FileCode",
+                icon: "FileCode", // OfflineStorage
                 name: "Source",
                 panel: this.input,
             },

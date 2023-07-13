@@ -7,6 +7,7 @@ import {BaseValueTypeState} from "./valueTypes/BaseValueTypeState";
 import {PlainValueState} from "./valueTypes/PlainValueState";
 import {GraphValueState} from "./valueTypes/GraphValueState";
 import {NodeId} from "react-accessible-treeview";
+import {GrammarValueState} from "./valueTypes/GrammarValueState";
 
 /**
  * The state associated to a single shown panel
@@ -38,7 +39,11 @@ export class ValuePanelState extends PanelState {
     public constructor(valueNodes: IValNode[]) {
         super();
         this.setValueNodes(valueNodes);
-        this.types = [new PlainValueState(this), new GraphValueState(this)];
+        this.types = [
+            new GraphValueState(this),
+            new GrammarValueState(this),
+            new PlainValueState(this),
+        ];
         this.selectedType = new Field(this.types[0]);
     }
 

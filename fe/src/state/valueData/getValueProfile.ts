@@ -63,7 +63,7 @@ function getProfileInput(node: IValNode): null | IProfileValueData {
             layout: {
                 deleteUnusedPanels: getConstrField(
                     settings,
-                    "deleteUnusedPanels",
+                    "layoutDeleteUnusedPanels",
                     "boolean"
                 )?.value,
             },
@@ -75,27 +75,36 @@ function getProfileInput(node: IValNode): null | IProfileValueData {
             },
             text: {
                 highlightIntensity: getValNumber(
-                    getConstrField(settings, "highlightIntensity", "number"),
+                    getConstrField(settings, "textHighlightIntensity", "number"),
                     {min: 0, max: 1, decimals: 2}
                 ),
                 hoverHighlightIntensity: getValNumber(
-                    getConstrField(settings, "hoverHighlightIntensity", "number"),
+                    getConstrField(settings, "textHoverHighlightIntensity", "number"),
                     {min: 0, max: 1, decimals: 2}
                 ),
                 showCollectionSizes: {
-                    list: getConstrField(settings, "showListSize", "boolean")?.value,
-                    set: getConstrField(settings, "showSetSize", "boolean")?.value,
-                    tuple: getConstrField(settings, "showTupleSize", "boolean")?.value,
-                    map: getConstrField(settings, "showMapSize", "boolean")?.value,
+                    list: getConstrField(settings, "textShowListSize", "boolean")?.value,
+                    set: getConstrField(settings, "textShowSetSize", "boolean")?.value,
+                    tuple: getConstrField(settings, "textShowTupleSize", "boolean")
+                        ?.value,
+                    map: getConstrField(settings, "textShowMapSize", "boolean")?.value,
                 },
             },
             search: {
                 initialLoadCount: getValNumber(
-                    getConstrField(settings, "initialSearchLoadCount", "number"),
+                    getConstrField(settings, "searchInitialLoadCount", "number"),
                     {min: 1}
                 ),
                 loadMoreCount: getValNumber(
-                    getConstrField(settings, "expandSearchLoadCount", "number"),
+                    getConstrField(settings, "searchExpandLoadCount", "number"),
+                    {min: 1}
+                ),
+            },
+            grammar: {
+                showLayout: getConstrField(settings, "grammarShowLayout", "boolean")
+                    ?.value,
+                alignWidth: getValNumber(
+                    getConstrField(settings, "grammarAlignWidth", "number"),
                     {min: 1}
                 ),
             },

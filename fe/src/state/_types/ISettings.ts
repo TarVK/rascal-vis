@@ -30,4 +30,11 @@ export type ISettings = {
         /** How many entries to load per press */
         loadMoreCount: number;
     };
+    /** Grammar settings */
+    grammar: {
+        /** Whether to show layout insertions */
+        showLayout: boolean;
+        /** Minimum LHS width for better alignment */
+        alignWidth: number;
+    };
 };

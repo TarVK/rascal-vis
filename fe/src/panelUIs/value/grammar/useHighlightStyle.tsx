@@ -40,19 +40,21 @@ export function useHighlightStyle(state: AppState) {
     })} ${
         highlight
             ? css({
-                  [`.value[id='${highlight.id}']`]: getColorStyle(
-                      theme.palette.themeTertiary,
-                      settings.highlightIntensity
-                  ),
+                  [`.symbol[id='${highlight.id}'], .production[id='${highlight.id}']`]:
+                      getColorStyle(
+                          theme.palette.themeTertiary,
+                          settings.highlightIntensity
+                      ),
               })
             : undefined
     } ${
         hoverHighlight
             ? css({
-                  [`.value[id='${hoverHighlight.id}']`]: getColorStyle(
-                      theme.palette.themeTertiary,
-                      settings.hoverHighlightIntensity
-                  ),
+                  [`.symbol[id='${hoverHighlight.id}'], .production[id='${hoverHighlight.id}']`]:
+                      getColorStyle(
+                          theme.palette.themeTertiary,
+                          settings.hoverHighlightIntensity
+                      ),
               })
             : undefined
     }`;

@@ -18,15 +18,17 @@ export type ISettingsValueDataInput = IConstr & {
     name: (typeof settingsConstrData)["name"];
     children: [];
     namedChildren: (
-        | {name: "deleteUnusedPanels"; value: IBool}
-        | {name: "hoverHighlightIntensity"; value: INum}
-        | {name: "highlightIntensity"; value: INum}
-        | {name: "showSetSize"; value: IBool}
-        | {name: "showMapSize"; value: IBool}
-        | {name: "showListSize"; value: IBool}
-        | {name: "showTupleSize"; value: IBool}
+        | {name: "layoutDeleteUnusedPanels"; value: IBool}
+        | {name: "textHoverHighlightIntensity"; value: INum}
+        | {name: "textHighlightIntensity"; value: INum}
+        | {name: "textShowSetSize"; value: IBool}
+        | {name: "textShowMapSize"; value: IBool}
+        | {name: "textShowListSize"; value: IBool}
+        | {name: "textShowTupleSize"; value: IBool}
         | {name: "graphSharpness"; value: INum}
-        | {name: "initialSearchLoadCount"; value: INum}
-        | {name: "expandSearchLoadCount"; value: INum}
+        | {name: "searchInitialLoadCount"; value: INum}
+        | {name: "searchExpandLoadCount"; value: INum}
+        | {name: "grammarShowLayout"; value: IBool}
+        | {name: "grammarAlignWidth"; value: INum}
     )[];
 };
