@@ -231,7 +231,14 @@ export class SettingsState extends PanelState {
     public loadProfilesData() {
         try {
             const dataText = localStorage.getItem("rascal-vis");
-            if (!dataText) return;
+            if (!dataText) {
+                // Open the info tab by default, and make sure the polling starts going
+                const specialTabs = this.appState.specialTabs;
+                specialTabs.open(specialTabs.info);
+                specialTabs.input.setInputSourceType("server");
+                return;
+            }
+
             const data = JSON.parse(dataText);
             const map = new Map<string, IProfile>();
             data.profiles.forEach((profile: IProfile) => map.set(profile.id, profile));

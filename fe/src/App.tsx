@@ -14,6 +14,7 @@ import {SearchPanel} from "./panelUIs/search/SearchPanel";
 import {LayoutPanel} from "./panelUIs/layout/LayoutPanel";
 import {SettingsPanel} from "./panelUIs/settings/SettingsPanel";
 import {InputPanel} from "./panelUIs/input/InputPanel";
+import {InfoPanel} from "./panelUIs/info/InfoPanel";
 
 export const App: FC = () => {
     const state = usePersistentMemo(() => {
@@ -49,4 +50,5 @@ const components: IPanelComponents = {
     layout: LayoutPanel,
     settings: SettingsPanel,
     input: InputPanel,
+    info: InfoPanel,
 };

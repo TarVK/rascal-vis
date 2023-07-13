@@ -72,10 +72,15 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
         }));
     }, [showCount, matchTree]);
 
+    const noResults =
+        search.length > 0 &&
+        (trimmedMatchTree?.length ?? 0) <= 1 &&
+        search == panel.getSearchText(h);
+
     return (
         <PanelContainer
             ref={sizeRef}
-            className={`${treeStyleClass} ${highlightStyleClass} ${css({
+            className={`${css({
                 display: "flex",
                 flexDirection: "column",
             })}`}>
@@ -105,9 +110,11 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                     <Label style={{color: theme.semanticColors.errorText}}>{error}</Label>
                 )}
             </div>
-
+            {noResults && !error && (
+                <div>No values matching your query could be found</div>
+            )}
             <div
-                className={css({
+                className={`${treeStyleClass} ${highlightStyleClass} ${css({
                     flexGrow: 1,
                     flexShrink: 1,
                     minHeight: 0,
@@ -118,7 +125,7 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                         minWidth: "fit-content",
                     },
                     ...useScrollbarStyle(),
-                })}>
+                })}`}>
                 <HoverContextProvider state={state}>
                     <ResettingHighlighCache sizeRef={sizeRef}>
                         {trimmedMatchTree?.length && (

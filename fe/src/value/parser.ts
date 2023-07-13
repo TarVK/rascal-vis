@@ -193,7 +193,9 @@ const constrPattern = <T>(value: Parser<T>) =>
         namedChildren: namedValues,
     }));
 
-const anyPattern = P.string(".").map(() => ({type: "any"} as const));
+const anyPattern = P.string(".")
+    .or(P.string("_"))
+    .map(() => ({type: "any"} as const));
 const repeatPattern = <T>(value: Parser<T>) =>
     P.seq(P.string("*"), WS, value).map(
         ([_1, _2, value]) => ({type: "repeat", value} as const)
@@ -207,7 +209,7 @@ const regexPattern = P<IRegex>((input, i) => {
     if (!result.status) return result;
     try {
         const regex = new RegExp((result.value as any)[1]);
-        return P.makeSuccess(i, {type: "regex", regex});
+        return P.makeSuccess(result.index, {type: "regex", regex});
     } catch (e) {
         return P.makeFailure(i, ["a valid regular expression"]);
     }

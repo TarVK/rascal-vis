@@ -1,7 +1,7 @@
 module examples::grammarExample
 
 import Grammar;
-import lang::rascal::\syntax::Rascal;
+// import lang::rascal::\syntax::Rascal;
 import Visualize;
 
 lexical Ident =  [a-zA-Z][a-zA-Z0-9]* !>> [a-zA-Z0-9];
@@ -38,6 +38,7 @@ syntax Exp
 syntax Binding = binding: Ident "=" Exp;
 
 void main() {
-    visualize(grammar(#Module));
+    visualize(grammar(#Prog));
+    // visualize(grammar(#Module));
     // stopVisualize();
 }

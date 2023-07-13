@@ -23,7 +23,13 @@ import {usePersistentMemo} from "../../../utils/usePersistentMemo";
 import {css} from "@emotion/css";
 import {INodeRole, IValNode} from "../../../_types/IValNode";
 import {ValueHighlight} from "./ValueHighlight";
-import {ContextualMenu, FontIcon, IContextualMenuItem, useTheme} from "@fluentui/react";
+import {
+    ContextualMenu,
+    FontIcon,
+    IContextualMenuItem,
+    Link,
+    useTheme,
+} from "@fluentui/react";
 import {ASTtoText} from "../../../value/ASTtoText";
 import {copy} from "../../../utils/copy";
 import {StateContext, useAppState} from "../../../state/StateContext";
@@ -56,7 +62,18 @@ export const TextPanel: FC<{
 
     const [expandNodes, onExpand] = useExpandState(panel, textState);
 
-    if (nodes.length == 0) return <PanelContainer>No value specified</PanelContainer>;
+    if (nodes.length == 0)
+        return (
+            <PanelContainer>
+                No value specified, see the{" "}
+                <Link
+                    onClick={() => {
+                        state.specialTabs.open(state.specialTabs.input);
+                    }}>
+                    input panel
+                </Link>
+            </PanelContainer>
+        );
 
     return (
         <PanelContainer

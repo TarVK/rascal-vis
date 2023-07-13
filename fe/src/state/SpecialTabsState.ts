@@ -1,4 +1,5 @@
 import {AppState} from "./AppState";
+import {InfoPanelState} from "./InfoPanelState";
 import {InputPanelState} from "./InputPanelstate";
 import {LayoutPanelState} from "./LayoutPanelState";
 import {PanelState} from "./PanelState";
@@ -15,10 +16,11 @@ export class SpecialTabsState {
     public root: ValuePanelState;
     public search: SearchPanelState;
     public input: InputPanelState;
-    public layout: LayoutPanelState;
+    // public layout: LayoutPanelState;
     public settings: SettingsState;
+    public info: InfoPanelState;
 
-    public tabs: {icon: string; name: string; panel: PanelState}[] = [];
+    public tabs: {icon: string; name: string; panel: PanelState; openIn?: string}[] = [];
 
     public constructor(state: AppState) {
         this.appState = state;
@@ -37,9 +39,13 @@ export class SpecialTabsState {
         this.input.setName("Input");
         this.appState.addPanel(this.input, false, false);
 
-        this.layout = new LayoutPanelState(state);
-        this.layout.setName("Tabs");
-        this.appState.addPanel(this.layout, false, false);
+        // this.layout = new LayoutPanelState(state);
+        // this.layout.setName("Tabs");
+        // this.appState.addPanel(this.layout, false, false);
+
+        this.info = new InfoPanelState();
+        this.info.setName("Info");
+        this.appState.addPanel(this.info, false, false);
 
         this.settings = new SettingsState(state);
         this.settings.setName("Settings");
@@ -54,7 +60,8 @@ export class SpecialTabsState {
             {
                 icon: "Info",
                 name: "Info",
-                panel: this.search,
+                panel: this.info,
+                openIn: "root",
             },
             {
                 icon: "FileCode", // OfflineStorage
@@ -65,11 +72,6 @@ export class SpecialTabsState {
                 icon: "search",
                 name: this.search.getName(),
                 panel: this.search,
-            },
-            {
-                icon: "LargeGrid",
-                name: this.layout.getName(),
-                panel: this.layout,
             },
             {
                 icon: "Settings",
@@ -92,15 +94,30 @@ export class SpecialTabsState {
         if (container) {
             layout.selectTab(container.id, panel.getID());
         } else {
-            const sidebarID = "sidebar";
-            const sidebar = containers.find(({id}) => id == sidebarID);
-            if (!sidebar) {
+            let targetContainerID = "sidebar";
+
+            // Search for the panel id to open in
+            const data = this.tabs.find(({panel: p}) => p == panel);
+            if (data?.openIn) {
+                const isContainer = containers.some(({id}) => id == data.openIn);
+                if (isContainer) targetContainerID = data.openIn;
+                else {
+                    const container = containers.find(({tabs}) =>
+                        tabs.some(({id}) => id == data.openIn)
+                    );
+                    if (container) targetContainerID = container.id;
+                }
+            }
+
+            //Open in the panel
+            const targetContainer = containers.find(({id}) => id == targetContainerID);
+            if (!targetContainer) {
                 const mainId = layout.getLayout().id;
-                const parentId = layout.addPanel(mainId, "west", 0.6, sidebarID);
+                const parentId = layout.addPanel(mainId, "west", 0.6, targetContainerID);
                 if (!parentId) return;
             }
-            layout.openTab(sidebarID, panel.getID());
-            layout.selectTab(sidebarID, panel.getID());
+            layout.openTab(targetContainerID, panel.getID());
+            layout.selectTab(targetContainerID, panel.getID());
         }
     }
 }

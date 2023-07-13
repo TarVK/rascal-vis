@@ -17,6 +17,7 @@ import {PlainValueState} from "../../state/valueTypes/PlainValueState";
 import {StyledTooltipHost} from "../../components/StyledToolTipHost";
 import {GrammarValueState} from "../../state/valueTypes/GrammarValueState";
 import {GrammarPanel} from "./grammar/GrammarPanel";
+import {ErrorBoundary} from "../../components/ErrorBoundary";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,
@@ -78,7 +79,14 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
                     </StyledTooltipHost>
                 </div>
             )}
-            {visualization}
+            <ErrorBoundary
+                onError={() => (
+                    <div style={{color: theme.semanticColors.errorText}}>
+                        An unexpected error occurred, see console for details
+                    </div>
+                )}>
+                {visualization}
+            </ErrorBoundary>
         </>
     );
 };
