@@ -32,8 +32,101 @@ export class GrammarValueState extends BaseValueTypeState {
         return getGrammarData(nodes[1], map);
     });
 
-    public constructor(panel: ValuePanelState) {
-        super(panel);
+    /** The nodes that are expanded */
+    protected expanded = new Field<Set<string | number>>(new Set());
+
+    /**
+     * Updates the nodes that are currently expanded
+     * @param expanded The nodes that are now expanded
+     */
+    public setExpanded(expanded: Set<string | number>) {
+        this.expanded.set(expanded);
+    }
+
+    /**
+     * Retrieves the ids of all nodes that are currently expanded
+     * @param hook The hook to subscrive to changes
+     * @returns ALl currently expanded nodes
+     */
+    public getExpanded(hook?: IDataHook): Set<string | number> {
+        return this.expanded.get(hook);
+    }
+
+    /**
+     * Expands all symbols in the grammar
+     */
+    public expandAll(): void {
+        const symbols = new Set<number | string>();
+
+        function rec(
+            item: IGrammarProduction | IGrammarSymbol | IGrammarCondition
+        ): void {
+            if (item.type == "alt" || item.type == "seq") {
+                symbols.add(item.source.id);
+            }
+            if (item.type == "alt" || item.type == "seq") item.expr.forEach(rec);
+            else if (
+                item.type == "opt" ||
+                item.type == "iter" ||
+                item.type == "iter-star" ||
+                item.type == "label" ||
+                item.type == "annotate" ||
+                item.type == "follow" ||
+                item.type == "not-follow" ||
+                item.type == "precede" ||
+                item.type == "not-precede" ||
+                item.type == "delete"
+            )
+                rec(item.expr);
+            else if (item.type == "iter-seps" || item.type == "iter-star-seps") {
+                rec(item.expr);
+                item.separators.forEach(rec);
+            } else if (item.type == "conditional") {
+                rec(item.expr);
+                item.conditions.forEach(rec);
+            } else if (item.type == "prod") item.symbols.forEach(rec);
+            else if (
+                item.type == "priority" ||
+                item.type == "choice" ||
+                item.type == "associativity"
+            )
+                item.alternatives.forEach(rec);
+        }
+        this.grammar.get()?.rules.forEach(({value: prod}) => rec(prod));
+
+        this.setExpanded(symbols);
+    }
+
+    /**
+     * Retrieves all the ancestors of a given node
+     * @param node The node to get the ancestors of
+     * @returns The ancestors including the passed node
+     */
+    public getAncestors(node: IValNode): IValNode[] {
+        let out: IValNode[] = [];
+        const map = this.panel.valueMap.get();
+        let n: IValNode | undefined = node;
+        while (n) {
+            out.push(n);
+            n = n.parent && map.has(n.parent) ? map.get(n.parent) : undefined;
+        }
+        return out;
+    }
+
+    /**
+     * Retrieves all the descendents of a given node
+     * @param node The node to get the descendents of
+     * @param out The accumalation array
+     * @returns All the descendents including the passed node
+     */
+    public getDescendents(node: IValNode, out: IValNode[] = []): IValNode[] {
+        const map = this.panel.valueMap.get();
+        out.push(node);
+        for (let childId of node.children) {
+            const child = map.has(childId) ? map.get(childId) : undefined;
+            if (child) this.getDescendents(child, out);
+        }
+        return out;
     }
 
     /** @override */
@@ -53,11 +146,14 @@ export class GrammarValueState extends BaseValueTypeState {
     public serialize(): IGrammarValueSerialization {
         return {
             type: "grammar",
+            expanded: [...this.expanded.get()],
         };
     }
 
     /** @override */
-    public deserialize(value: IGrammarValueSerialization): void {}
+    public deserialize(value: IGrammarValueSerialization): void {
+        this.expanded.set(new Set(value.expanded));
+    }
 }
 
 type INodeMap = Record<string | number, IValNode>;
@@ -194,6 +290,21 @@ export function getGrammarSymbol(node: IValNode, nodes: INodeMap): IGrammarSymbo
     } else if (nameWoSlash == "seq") {
         const alternatives = recList(val.children[0], "list");
         return {type: nameWoSlash, expr: alternatives, source};
+    } else if (nameWoSlash == "annotate") {
+        const child = nodes[node.children[0]];
+        if (child == undefined) return uk;
+        const annotations = checkType(val.children[1], "set");
+        if (annotations == undefined) return uk;
+        const textAnnotations = annotations.children
+            .map(v => checkType(v, "string")?.value ?? null)
+            .filter(nonNullFilter);
+        return {
+            type: nameWoSlash,
+            expr: rec(child),
+            annotations,
+            textAnnotations,
+            source,
+        };
     } else if (nameWoSlash == "conditional") {
         const child = nodes[node.children[0]];
         if (child == undefined) return uk;

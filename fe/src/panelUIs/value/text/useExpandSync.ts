@@ -16,15 +16,14 @@ export function useExpandState(
         [panel]
     );
     useEffect(() => {
-        const expanded = textState.expanded.get();
-        setExpandNodes([...expanded]);
+        setExpandNodes(textState.getExpanded());
     }, []);
 
     return [
         expandNodes,
         useCallback(
             props => {
-                textState.expanded.set(props.treeState.expandedIds);
+                textState.setExpanded(props.treeState.expandedIds);
             },
             [textState]
         ),

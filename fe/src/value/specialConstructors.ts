@@ -17,6 +17,10 @@ export const specialConstructors: ISpecialConstrData[] = [
     graphConstrData,
     graphNodeConstrData,
     graphEdgeConstrData,
+    {
+        name: "grammar",
+        type: "visualization"
+    }
 ];
 export type ISpecialConstr = typeof specialConstructors;
 

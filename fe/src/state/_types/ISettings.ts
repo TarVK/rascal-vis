@@ -36,5 +36,9 @@ export type ISettings = {
         showLayout: boolean;
         /** Minimum LHS width for better alignment */
         alignWidth: number;
+        /** Whether to show the expansion handle */
+        showHandle: IGrammarExpansionHandleType
     };
 };
+
+type IGrammarExpansionHandleType = "never"|"hover"|"always";

@@ -10,7 +10,9 @@ export function useHighlightStyle(state: AppState) {
     const highlight = state.getHighlight(h);
     const hoverHighlight = state.getHoverHighlight(h);
 
-    const settings = state.getSettings(h).text;
+    const settings = state.getSettings(h);
+    const textSettings = settings.text;
+    const grammarSettings = settings.grammar;
 
     const getColorStyle = (color: string, opacity: number): CSSObject =>
         opacity == 1
@@ -36,6 +38,20 @@ export function useHighlightStyle(state: AppState) {
 
     return `${css({
         fontFamily: "consolas",
+        ".expanded":{
+            position: "relative",
+            zIndex: 1,
+            "&::before": {
+                content: "''",
+                display: "inline-block",
+                position: "absolute",
+                top: 19,
+                bottom: 18,
+                left: grammarSettings.showHandle=="always" ? 15 : 5,
+                borderLeft: `2px solid ${theme.palette.neutralLighter}`,
+                zIndex: -1
+            },
+        },
         ...highlightTheme(theme),
     })} ${
         highlight
@@ -43,7 +59,7 @@ export function useHighlightStyle(state: AppState) {
                   [`.symbol[id='${highlight.id}'], .production[id='${highlight.id}']`]:
                       getColorStyle(
                           theme.palette.themeTertiary,
-                          settings.highlightIntensity
+                          textSettings.highlightIntensity
                       ),
               })
             : undefined
@@ -53,7 +69,7 @@ export function useHighlightStyle(state: AppState) {
                   [`.symbol[id='${hoverHighlight.id}'], .production[id='${hoverHighlight.id}']`]:
                       getColorStyle(
                           theme.palette.themeTertiary,
-                          settings.hoverHighlightIntensity
+                          textSettings.hoverHighlightIntensity
                       ),
               })
             : undefined

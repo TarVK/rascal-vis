@@ -9,6 +9,7 @@ import {TDeepPartial} from "../_types/TDeepPartial";
 import {IProfileValueData} from "./_types/IProfileValueData";
 import {getConstrField} from "./util/getConstrField";
 import {getValNumber} from "./util/getValNumber";
+import {getValOption} from "./util/getValOption";
 
 /** Data about profile constructors */
 export const profileConstrData = {
@@ -106,6 +107,11 @@ function getProfileInput(node: IValNode): null | IProfileValueData {
                 alignWidth: getValNumber(
                     getConstrField(settings, "grammarAlignWidth", "number"),
                     {min: 1}
+                ),
+                showHandle: getValOption(
+                    getConstrField(settings, "grammarShowHandler", "string"),
+                    ["never", "hover", "always"],
+                    undefined
                 ),
             },
         };

@@ -19,7 +19,7 @@ export class ValuePanelState extends PanelState {
 
     // Value data
     protected valueNodes = new Field<IValNode[]>([]);
-    protected valueMap = new DataCacher(h => {
+    public readonly valueMap = new DataCacher(h => {
         const out = new Map<string | number, IValNode>();
         for (let node of this.valueNodes.get(h)) out.set(node.id, node);
         return out;

@@ -3,16 +3,21 @@ import {IGrammarProduction} from "../../../state/valueTypes/_types/IGrammarData"
 import {IGrammarInteractionHandler} from "./_types/IGrammarInteractionHandler";
 import {highlightSymbol} from "./highlightSymbol";
 import {ISettings} from "../../../state/_types/ISettings";
+import {IGrammarExpansionData} from "./_types/IGrammarExpansionData";
+import {nonNullFilter} from "../../../utils/nonNullFilter";
 
 /**
  * Highlights the given grammar production rule
  * @param production The production rule to highlight and add handlers to
+ * @param settings The settings to apply
+ * @param expand Expansion interaction handlers
  * @param handlers The handlers to be added
  * @returns The resulting element
  */
 export function highlightProduction(
     production: IGrammarProduction,
     settings: ISettings["grammar"],
+    expand: IGrammarExpansionData | null,
     handlers: IGrammarInteractionHandler
 ): JSX.Element {
     const attrs = {
@@ -21,11 +26,11 @@ export function highlightProduction(
         "node-id": production.source.id,
     };
     const rec = (symbol: IGrammarProduction) =>
-        highlightProduction(symbol, settings, handlers);
+        highlightProduction(symbol, settings, expand, handlers);
     const indent = 20;
     const choice = (type: string) => (prod: IGrammarProduction, index: number) =>
         (
-            <div style={{display: "flex", gap: 5}} key={index}>
+            <div style={{display: "flex", gap: 5, minHeight: 17}} key={index}>
                 <span
                     style={{
                         flexShrink: 0,
@@ -102,12 +107,51 @@ export function highlightProduction(
     } else if (production.type == "prod") {
         let label = undefined;
         if (production.definition.type == "label") label = production.definition.name;
+
+        const tags = production.attributes
+            .map((attr, i) => {
+                if (attr.type != "tag") return null;
+                const val = attr.value;
+                if (!(val.type == "constr" || val.type == "node")) return null;
+                if (val.children.length > 1) return null;
+
+                if (val.children.length == 0)
+                    return (
+                        <span key={i} className="prodTag" style={{marginRight: 10}}>
+                            <span className="glyph">@</span>
+                            {val.name}
+                        </span>
+                    );
+
+                const child = val.children[0];
+                if (
+                    !(
+                        child.type == "boolean" ||
+                        child.type == "string" ||
+                        child.type == "number"
+                    )
+                )
+                    return null;
+
+                return (
+                    <span key={i} className="prodTag" style={{marginRight: 10}}>
+                        <span className="glyph">@</span>
+                        {val.name}
+                        <span className="glyph">=</span>
+                        <span className="value">
+                            {child.type == "string" ? '"'+child.valuePlain+'"' : child.value}
+                        </span>
+                    </span>
+                );
+            })
+            .filter(nonNullFilter);
+
         return (
             <div className="production prod" {...attrs}>
-                {label && <span className={"prodLabel"}>{label + ": "}</span>}
+                {tags}{label && <span className={"prodLabel"}>{label + ": "}</span>}
                 {production.symbols.map((symbol, i) => (
                     <Fragment key={i}>
-                        {highlightSymbol(symbol, settings, handlers)}{" "}
+                        {highlightSymbol(symbol, settings, expand, handlers)}{" "}
                     </Fragment>
                 ))}
             </div>

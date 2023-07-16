@@ -30,5 +30,6 @@ export type ISettingsValueDataInput = IConstr & {
         | {name: "searchExpandLoadCount"; value: INum}
         | {name: "grammarShowLayout"; value: IBool}
         | {name: "grammarAlignWidth"; value: INum}
+        | {name: "grammarShowHandle"; value: IString}
     )[];
 };

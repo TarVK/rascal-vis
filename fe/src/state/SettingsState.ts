@@ -49,6 +49,7 @@ export class SettingsState extends PanelState {
         grammar: {
             showLayout: false,
             alignWidth: 150,
+            showHandle: "hover",
         },
     });
 

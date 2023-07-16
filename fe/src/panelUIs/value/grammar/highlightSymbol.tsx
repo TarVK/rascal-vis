@@ -1,19 +1,25 @@
 import React, {Fragment} from "react";
 import {ICharRange, IGrammarSymbol} from "../../../state/valueTypes/_types/IGrammarData";
 import {IGrammarInteractionHandler} from "./_types/IGrammarInteractionHandler";
-import {intersperse} from "../../../utils/intersperse";
+import {intersperse, intersperseDynamic} from "../../../utils/intersperse";
 import {IEscapedString} from "../../../_types/IEscapeString";
 import {ISettings} from "../../../state/_types/ISettings";
+import {IGrammarExpansionData} from "./_types/IGrammarExpansionData";
+import {FontIcon} from "@fluentui/react";
+import {css} from "@emotion/css";
 
 /**
  * Highlights the given grammar symbol
  * @param symbol The symbol to highlight and add handlers to
+ * @param settings The settings to apply
+ * @param expand Expansion interaction handlers
  * @param handlers THe handlers to add
  * @returns The jsc element representing the symbol
  */
 export function highlightSymbol(
     symbol: IGrammarSymbol,
     settings: ISettings["grammar"],
+    expand: IGrammarExpansionData | null,
     handlers: IGrammarInteractionHandler
 ): JSX.Element {
     const attrs = {
@@ -32,7 +38,8 @@ export function highlightSymbol(
                 </span>
             )
         );
-    const rec = (symbol: IGrammarSymbol) => highlightSymbol(symbol, settings, handlers);
+    const rec = (symbol: IGrammarSymbol) =>
+        highlightSymbol(symbol, settings, expand, handlers);
     if (symbol.type == "start") {
         return (
             <span className="symbol start" {...attrs}>
@@ -69,35 +76,6 @@ export function highlightSymbol(
         return (
             <span className="symbol empty glyph" {...attrs}>
                 ()
-            </span>
-        );
-    } else if (symbol.type == "alt") {
-        return (
-            <span className="symbol alts" {...attrs}>
-                <span className="glyph">(</span>
-                {/* <div style={{paddingLeft: 20}}>
-                    {symbol.expr.map(rec).map((el, i) => (
-                        <Fragment key={i}>
-                            <span
-                                style={{
-                                    display: "inline-block",
-                                    textAlign: "right",
-                                    width: 20,
-                                }}>
-                                {i != 0 ? "|" : ""}
-                            </span>
-                            {el}
-                            <br />
-                        </Fragment>
-                    ))}
-                </div> */}
-                {symbol.expr.map(rec).map((el, i) => (
-                    <Fragment key={i}>
-                        {i != 0 ? <span className="glyph">|</span> : ""}
-                        {el}
-                    </Fragment>
-                ))}
-                <span className="glyph">)</span>
             </span>
         );
     } else if (symbol.type == "label") {
@@ -155,12 +133,89 @@ export function highlightSymbol(
                 <span className="glyph">]</span>
             </span>
         );
-    } else if (symbol.type == "seq") {
+    } else if (symbol.type == "alt" || symbol.type == "seq") {
+        const expandClass =
+            settings.showHandle == "hover"
+                ? css({
+                      "&>.expand, &>div>.collapse": {display: "none"},
+                      "&:hover>.expand, &:hover>div>.collapse": {display: "inline-block"},
+                  })
+                : settings.showHandle == "always"
+                ? css({
+                      ".expand, .collapse": {display: "inline-block"},
+                  })
+                : css({
+                      ".expand, .collapse": {display: "none"},
+                  });
+        if (expand?.expanded.has(symbol.source.id)) {
+            const indent = settings.showHandle == "always" ? 20 : 10;
+            return (
+                <span
+                    className={`symbol ${symbol.type} expanded`}
+                    style={{display: "inline-block"}}
+                    {...attrs}>
+                    <div
+                        className={expandClass}
+                        style={{display: "flex", flexDirection: "column"}}>
+                        <div>
+                            <span
+                                onClick={expand.toggleHandler(symbol.source)}
+                                className="glyph collapse"
+                                style={{
+                                    transform: "rotate(90deg)",
+                                    width: 10,
+                                }}>
+                                <FontIcon iconName="CaretRightSolid8" />
+                            </span>
+                            <span className="glyph">(</span>
+                        </div>
+                        {symbol.expr.map((c, i) => (
+                            <div key={i} style={{paddingLeft: indent}}>
+                                <span
+                                    style={{
+                                        display: "inline-block",
+                                        width: indent,
+                                        marginLeft: -indent,
+                                        textAlign: "right",
+                                    }}>
+                                    {symbol.type == "alt" ? "|" : ""}
+                                </span>
+                                {rec(c)}
+                            </div>
+                        ))}
+                        <div className="glyph">
+                            { settings.showHandle == "always" && <span style={{width: 10, display: "inline-block"}} />})
+                        </div>
+                    </div>
+                </span>
+            );
+        }
+
+        // If not expanded, set expand to null to prevent children from expanding
+        expand = expand ? {...expand, expanded: new Set()} : null;
         return (
-            <span className="symbol seq" {...attrs}>
+            <span className={`symbol ${symbol.type} ${expandClass}`} {...attrs}>
+                {expand && (
+                    <span
+                        onClick={expand.toggleHandler(symbol.source)}
+                        className={`glyph expand ${css({
+                            fontSize: 12,
+                            position: "relative",
+                            top: 2,
+                        })}`}>
+                        <FontIcon iconName="CaretRightSolid8" />
+                    </span>
+                )}
                 <span className="glyph">(</span>
-                {symbol.expr.map((c, i) => (
-                    <Fragment key={i}>{rec(c)}</Fragment>
+                {symbol.expr.map(rec).map((el, i) => (
+                    <Fragment key={i}>
+                        {i != 0 && symbol.type == "alt" ? (
+                            <span className="glyph">|</span>
+                        ) : (
+                            ""
+                        )}
+                        {el}
+                    </Fragment>
                 ))}
                 <span className="glyph">)</span>
             </span>
@@ -208,6 +263,34 @@ export function highlightSymbol(
                         ? "*"
                         : "+"}
                 </span>
+            </span>
+        );
+    } else if (symbol.type == "annotate") {
+        if (symbol.textAnnotations.length == 0)
+            return (
+                <span className="symbol annotate" {...attrs}>
+                    {rec(symbol.expr)}
+                </span>
+            );
+
+        return (
+            <span className="symbol annotate" {...attrs}>
+                <span className="glyph">({"<"}</span>
+                {intersperseDynamic(
+                    symbol.textAnnotations.map((a, i) => (
+                        <span key={i} className="annotation">
+                            {getText(a)}
+                        </span>
+                    )),
+                    (v, i) => (
+                        <span key={`${i}-`} className="glyph">
+                            ;
+                        </span>
+                    )
+                )}
+                <span className="glyph">{">"}</span>
+                {rec(symbol.expr)}
+                <span className="glyph">{")"}</span>
             </span>
         );
     } else if (symbol.type == "conditional") {

@@ -2,8 +2,10 @@ import React, {FC} from "react";
 import {SettingsState} from "../../state/SettingsState";
 import {AppState} from "../../state/AppState";
 import {useDataHook} from "model-react";
-import {Slider, Toggle, useTheme} from "@fluentui/react";
+import {Dropdown, Slider, Toggle, useTheme} from "@fluentui/react";
 import {SettingsSectionContainer} from "./SettingsSectionContainer";
+import {useMemo} from "react-resizable-panels/dist/declarations/src/vendor/react";
+import {StyledDropdown} from "../../components/StyledDropdown";
 
 export const GrammarValueSettings: FC<{panel: SettingsState; state: AppState}> = ({
     panel,
@@ -25,13 +27,38 @@ export const GrammarValueSettings: FC<{panel: SettingsState; state: AppState}> =
                     showValue
                     onChange={v => panel.updateSettings({grammar: {alignWidth: v}})}
                 />
+                <div style={{flexGrow: 1}}></div>
+            </div>
+            <div style={{display: "flex", gap: 10, flexWrap: "wrap"}}>
                 <Toggle
-                    styles={{root: {minWidth: 90, flexGrow: 1}}}
+                    styles={{root: {minWidth: 90, flexGrow: 1, width: 0}}}
                     label="Show layout"
                     checked={settings.showLayout}
                     onChange={(e, v) => panel.updateSettings({grammar: {showLayout: v}})}
                     onText="Show"
                     offText="Hide"
+                />
+                <StyledDropdown
+                    styles={{root: {flexGrow: 1, minWidth: 150, width: 0}}}
+                    label="Show expand handle"
+                    selectedKey={settings.showHandle}
+                    onChange={(e, o) =>
+                        o && panel.updateSettings({grammar: {showHandle: o.key as any}})
+                    }
+                    options={[
+                        {
+                            key: "never",
+                            text: "Never",
+                        },
+                        {
+                            key: "hover",
+                            text: "On hover",
+                        },
+                        {
+                            key: "always",
+                            text: "Always",
+                        },
+                    ]}
                 />
             </div>
         </SettingsSectionContainer>

@@ -371,10 +371,12 @@ export function panelDataToState(data: IPanelData): IPanelState {
         return {
             ...data,
             handle: {current: null},
-            panels: data.panels.map(({weight, content}, i) => ({
-                defaultWeight: weight,
-                content: panelDataToState(content),
-            })),
+            panels: balanceDefaultWeights(
+                data.panels.map(({weight, content}, i) => ({
+                    defaultWeight: weight,
+                    content: panelDataToState(content),
+                }))
+            ),
         };
     else
         return {

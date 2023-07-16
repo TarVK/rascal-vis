@@ -1,5 +1,5 @@
 import {IEscapedString} from "../../../_types/IEscapeString";
-import {IVal} from "../../../_types/IVal";
+import {ISet, IVal} from "../../../_types/IVal";
 import {IValNode} from "../../../_types/IValNode";
 
 export type IGrammarData = {
@@ -94,6 +94,12 @@ export type IGrammarSymbol = TSourced<
           type: "label";
           expr: IGrammarSymbol;
           name: IEscapedString;
+      }
+    | {
+          type: "annotate";
+          expr: IGrammarSymbol;
+          annotations: ISet;
+          textAnnotations: IEscapedString[];
       }
 >;
 

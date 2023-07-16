@@ -18,6 +18,9 @@ import {StyledTooltipHost} from "../../components/StyledToolTipHost";
 import {GrammarValueState} from "../../state/valueTypes/GrammarValueState";
 import {GrammarPanel} from "./grammar/GrammarPanel";
 import {ErrorBoundary} from "../../components/ErrorBoundary";
+import {useChangeID} from "../../utils/useChangeID";
+import {usePrevious} from "../../utils/usePrevious";
+import {PanelContainer} from "../../components/PanelContainer";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,
@@ -55,6 +58,10 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
         [visualization, options]
     );
 
+    const nodes = panel.getValueNodes(h);
+    const prev = usePrevious(nodes);
+    const id = useChangeID(prev != nodes);
+
     return (
         <>
             {options.length > 1 && (
@@ -80,10 +87,13 @@ export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
                 </div>
             )}
             <ErrorBoundary
+                key={id}
                 onError={() => (
-                    <div style={{color: theme.semanticColors.errorText}}>
-                        An unexpected error occurred, see console for details
-                    </div>
+                    <PanelContainer>
+                        <div style={{color: theme.semanticColors.errorText}}>
+                            An unexpected error occurred, see console for details
+                        </div>
+                    </PanelContainer>
                 )}>
                 {visualization}
             </ErrorBoundary>

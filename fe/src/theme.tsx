@@ -45,7 +45,7 @@ export const highlightTheme = (theme: ITheme): CSSObject => ({
     ".number, .boolean, .escaped": {
         color: "#ae81ff",
     },
-    ".collapse, .count, .label": {
+    ".collapse, .count, .label, .prodTag, .prodTag *": {
         color: "#747474",
     },
     ".context": {
@@ -64,4 +64,7 @@ export const highlightTheme = (theme: ITheme): CSSObject => ({
         color: new Color(theme.palette.themeSecondary).lighten(0.4).toString(),
         whiteSpace: "nowrap",
     },
+    ".annotation": {
+        color: theme.palette.themeDarker
+    }
 });

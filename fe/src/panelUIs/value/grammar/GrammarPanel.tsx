@@ -22,6 +22,8 @@ import {StyledContextMenu} from "../../../components/StyledContextMenu";
 import {copy} from "../../../utils/copy";
 import {ASTtoText} from "../../../value/ASTtoText";
 import {useAppState} from "../../../state/StateContext";
+import { IGrammarExpansionData } from "./_types/IGrammarExpansionData";
+import { useGrammarExpandHandler } from "./useGrammarExpandHandler";
 
 export const GrammarPanel: FC<{state: AppState; grammarState: GrammarValueState}> = ({
     state,
@@ -119,6 +121,18 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                             ? state.setHighlight(null)
                             : state.setHighlight(value),
                 },
+                {
+                    key: "collapseAll",
+                    text: "Collapse all symbols",
+                    iconProps: {iconName: "CaretRightSolid8"},
+                    onClick: () => grammarState.setExpanded(new Set())
+                },
+                {
+                    key: "expandAll",
+                    text: "Expand all symbols",
+                    iconProps: {iconName: "CaretDownSolid8"},
+                    onClick: ()=>grammarState.expandAll()
+                }
             ];
         }
         return [];
@@ -156,9 +170,12 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                 if (!val) state.setHoverHighlight(null);
                 else if (!("key" in val)) state.setHoverHighlight(val);
             },
-            [state, hoverHighlight]
+            [state, hoverHighlight, 
+                // mouseleave may not trigger if element is changed by expansion
+                grammarState.getExpanded(h)]
         )
     );
+    const expandHandler = useGrammarExpandHandler(grammarState);
     if (!grammar) return <></>;
 
     return (
@@ -176,6 +193,7 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                     <ProductionComp
                         key={key.source.id}
                         handler={interactionHandler}
+                        expandHandler={expandHandler}
                         symbol={key}
                         production={value}
                         source={source}
@@ -195,21 +213,23 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
 
 export const ProductionComp: FC<{
     handler: IGrammarInteractionHandler;
+    expandHandler: IGrammarExpansionData;
     production: IGrammarProduction;
     symbol: IGrammarSymbol;
     source: IValNode;
-}> = ({handler, production, symbol, source}) => {
+}> = ({handler, expandHandler, production, symbol, source}) => {
     const state = useAppState();
     const [h] = useDataHook();
     const settings = state.getSettings(h).grammar;
 
     const symbolHighlight = useMemo(
-        () => highlightSymbol(symbol, {...settings, showLayout: true}, handler),
+        () => highlightSymbol(symbol, {...settings, showLayout: true}, null, handler),
         [symbol, settings, handler]
     );
+
     const productionHighlight = useMemo(
-        () => highlightProduction(production, settings, handler),
-        [production, settings, handler]
+        () => highlightProduction(production, settings, expandHandler, handler),
+        [production, settings, expandHandler, handler]
     );
     // const shouldDedent = (prod: IGrammarProduction): boolean =>
     //     (prod.type == "priority" || prod.type == "choice") &&
