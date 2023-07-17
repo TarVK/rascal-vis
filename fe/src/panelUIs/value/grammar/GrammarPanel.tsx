@@ -22,8 +22,8 @@ import {StyledContextMenu} from "../../../components/StyledContextMenu";
 import {copy} from "../../../utils/copy";
 import {ASTtoText} from "../../../value/ASTtoText";
 import {useAppState} from "../../../state/StateContext";
-import { IGrammarExpansionData } from "./_types/IGrammarExpansionData";
-import { useGrammarExpandHandler } from "./useGrammarExpandHandler";
+import {IGrammarExpansionData} from "./_types/IGrammarExpansionData";
+import {useGrammarExpandHandler} from "./useGrammarExpandHandler";
 
 export const GrammarPanel: FC<{state: AppState; grammarState: GrammarValueState}> = ({
     state,
@@ -125,14 +125,14 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                     key: "collapseAll",
                     text: "Collapse all symbols",
                     iconProps: {iconName: "CaretRightSolid8"},
-                    onClick: () => grammarState.setExpanded(new Set())
+                    onClick: () => grammarState.setExpanded(new Set()),
                 },
                 {
                     key: "expandAll",
                     text: "Expand all symbols",
                     iconProps: {iconName: "CaretDownSolid8"},
-                    onClick: ()=>grammarState.expandAll()
-                }
+                    onClick: () => grammarState.expandAll(),
+                },
             ];
         }
         return [];
@@ -170,9 +170,12 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                 if (!val) state.setHoverHighlight(null);
                 else if (!("key" in val)) state.setHoverHighlight(val);
             },
-            [state, hoverHighlight, 
+            [
+                state,
+                hoverHighlight,
                 // mouseleave may not trigger if element is changed by expansion
-                grammarState.getExpanded(h)]
+                grammarState.getExpanded(h),
+            ]
         )
     );
     const expandHandler = useGrammarExpandHandler(grammarState);
@@ -222,8 +225,25 @@ export const ProductionComp: FC<{
     const [h] = useDataHook();
     const settings = state.getSettings(h).grammar;
 
+    const label =
+        symbol.type == "sort"
+            ? "syntax"
+            : symbol.type == "lex"
+            ? "lexical"
+            : symbol.type == "layouts"
+            ? "layout"
+            : symbol.type == "keywords"
+            ? "keyword"
+            : undefined;
+
     const symbolHighlight = useMemo(
-        () => highlightSymbol(symbol, {...settings, showLayout: true}, null, handler),
+        () =>
+            highlightSymbol(
+                symbol,
+                label ? {...settings, showLayout: true} : settings,
+                null,
+                handler
+            ),
         [symbol, settings, handler]
     );
 
@@ -238,16 +258,6 @@ export const ProductionComp: FC<{
     // const dedent = shouldDedent(production);
     const dedent = production.type == "priority" || production.type == "choice";
 
-    const label =
-        symbol.type == "sort"
-            ? "syntax"
-            : symbol.type == "lex"
-            ? "lexical"
-            : symbol.type == "layouts"
-            ? "layout"
-            : symbol.type == "keywords"
-            ? "keyword"
-            : "";
     return (
         <div style={{display: "flex", alignItems: "flex-start"}}>
             <div
