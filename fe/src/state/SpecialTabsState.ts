@@ -1,3 +1,4 @@
+import {IDataHook} from "model-react";
 import {AppState} from "./AppState";
 import {InfoPanelState} from "./InfoPanelState";
 import {InputPanelState} from "./InputPanelstate";
@@ -82,17 +83,18 @@ export class SpecialTabsState {
     }
 
     /**
-     * Opens the given state
+     * Opens the given panel
      * @param panel The panel state
      */
     public open(panel: PanelState): void {
         const layout = this.appState.getLayoutState();
         const containers = layout.getAllTabPanels();
+        const panelID = panel.getID();
         const container = containers.find(container =>
-            container.tabs.some(({id}) => id == panel.getID())
+            container.tabs.some(({id}) => id == panelID)
         );
         if (container) {
-            layout.selectTab(container.id, panel.getID());
+            layout.selectTab(container.id, panelID);
         } else {
             let targetContainerID = "sidebar";
 
@@ -116,8 +118,50 @@ export class SpecialTabsState {
                 const parentId = layout.addPanel(mainId, "west", 0.6, targetContainerID);
                 if (!parentId) return;
             }
-            layout.openTab(targetContainerID, panel.getID());
-            layout.selectTab(targetContainerID, panel.getID());
+            layout.openTab(targetContainerID, panelID);
+            layout.selectTab(targetContainerID, panelID);
         }
+    }
+
+    /**
+     * Closes the given panel
+     * @param panel The panel state to close
+     */
+    public close(panel: PanelState): void {
+        if (!panel.canClose()) return;
+
+        const layout = this.appState.getLayoutState();
+        const containers = layout.getAllTabPanels();
+        const panelID = panel.getID();
+        const parent = containers.find(({tabs}) => tabs.some(({id}) => id == panelID));
+        if (parent) {
+            layout.closeTab(parent.id, panelID);
+        }
+    }
+
+    /**
+     * Checks whether the given panel is opened
+     * @param panel The panel to check the opened state for
+     * @param hook The hook to subscribe to changes
+     * @returns Whether the panel is opened currently
+     */
+    public isOpen(panel: PanelState, hook?: IDataHook): boolean {
+        const layout = this.appState.getLayoutState();
+        const containers = layout.getAllTabPanels(hook);
+        const panelID = panel.getID();
+        return containers.some(({tabs}) => tabs.some(({id}) => id == panelID));
+    }
+
+    /**
+     * Checks whether the given panel is visible (opened and selected)
+     * @param panel The panel to check the visibility state for
+     * @param hook The hook to subscribe to changes
+     * @returns Whether the panel is visible currently
+     */
+    public isVisible(panel: PanelState, hook?: IDataHook): boolean {
+        const layout = this.appState.getLayoutState();
+        const containers = layout.getAllTabPanels(hook);
+        const panelID = panel.getID();
+        return containers.some(({selected}) => selected == panelID);
     }
 }

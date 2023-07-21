@@ -26,6 +26,7 @@ export const InputPanel: FC<{panel: InputPanelState; state: AppState}> = ({
 
     const [inputText, setInputText] = useSyncState(panel.getInputText(h));
     const updateValue = useCallback(() => {
+        if (panel.getInputSourceType() == "server") panel.setInputSourceType("manual");
         panel.setInputText(inputText);
     }, [inputText, panel]);
     const onKey = useCallback(

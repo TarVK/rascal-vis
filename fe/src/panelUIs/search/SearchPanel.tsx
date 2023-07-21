@@ -111,7 +111,11 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                 )}
             </div>
             {noResults && !error && (
-                <div>No values matching your query could be found</div>
+                <div>
+                    No values matching your{" "}
+                    {panel.getSearchType(h) == "text" ? "text" : "structured"} query could
+                    be found
+                </div>
             )}
             <div
                 className={`${treeStyleClass} ${highlightStyleClass} ${css({

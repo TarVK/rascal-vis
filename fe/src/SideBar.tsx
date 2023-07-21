@@ -1,5 +1,5 @@
 import {DirectionalHint, IconButton, TooltipHost, useTheme} from "@fluentui/react";
-import React, {FC} from "react";
+import React, {FC, useCallback} from "react";
 import {useAppState} from "./state/StateContext";
 import {PanelState} from "./state/PanelState";
 import {useId} from "@fluentui/react-hooks";
@@ -7,26 +7,54 @@ import {SpecialTabsState} from "./state/SpecialTabsState";
 import {useDragStart} from "./utils/useDragStart";
 import {css} from "@emotion/css";
 import {StyledTooltipHost} from "./components/StyledToolTipHost";
+import {useDataHook} from "model-react";
+import {GithubIcon} from "./components/GithubIcon";
 
 const size = 50;
 export const Sidebar: FC = () => {
     const theme = useTheme();
     const state = useAppState();
     const tabsState = state.specialTabs;
+    const githubId = useId("github");
     return (
         <>
             <div
                 style={{
                     width: size,
                     backgroundColor: theme.palette.neutralLight,
+                    display: "flex",
+                    flexDirection: "column",
                 }}>
                 {tabsState.tabs.map(props => (
                     <SidebarButton key={props.name} specialTabs={tabsState} {...props} />
                 ))}
+
+                <div style={{flexGrow: 1}} />
+                <StyledTooltipHost
+                    content="Github repository"
+                    directionalHint={DirectionalHint.rightCenter}
+                    id={githubId}>
+                    <IconButton
+                        aria-describedby={githubId}
+                        className={css({
+                            width: size,
+                            height: size,
+                            backgroundColor: theme.palette.neutralLight,
+                        })}
+                        onRenderIcon={() => (
+                            <GithubIcon
+                                width={size * 0.55}
+                                color={theme.palette.neutralPrimary}
+                            />
+                        )}
+                        aria-label="Github"
+                        href="https://github.com/TarVK/rascal-vis"
+                    />
+                </StyledTooltipHost>
             </div>
             <div
                 style={{
-                    width: 10,
+                    minWidth: 10,
                     boxShadow: "inset #0000004d 0px 0px 6px 2px",
                 }}
             />
@@ -42,6 +70,13 @@ export const SidebarButton: FC<{
 }> = ({name, icon, panel, specialTabs}) => {
     const theme = useTheme();
     const tooltipId = useId(name);
+    const [h] = useDataHook();
+    const onClick = useCallback(() => {
+        if (specialTabs.isVisible(panel)) specialTabs.close(panel);
+        else specialTabs.open(panel);
+    }, []);
+    const isVisible = specialTabs.isVisible(panel, h);
+
     const iconEl = (
         <IconButton
             aria-describedby={tooltipId}
@@ -49,11 +84,13 @@ export const SidebarButton: FC<{
                 width: size,
                 height: size,
                 color: theme.palette.neutralPrimary,
-                backgroundColor: theme.palette.neutralLight,
+                backgroundColor: isVisible
+                    ? theme.palette.neutralLighterAlt
+                    : theme.palette.neutralLight,
             })}
             iconProps={{iconName: icon, style: {fontSize: size * 0.5}}}
             aria-label={name}
-            onClick={() => specialTabs.open(panel)}
+            onClick={onClick}
         />
     );
 

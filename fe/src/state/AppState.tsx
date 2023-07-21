@@ -1,4 +1,4 @@
-import React, {FC} from "react";
+import React, {MouseEvent} from "react";
 import {DataCacher, Field, IDataHook} from "model-react";
 import {IEntry, IVal, IValPlain} from "../_types/IVal";
 import {value} from "../value/parser";
@@ -327,6 +327,7 @@ export class AppState {
     public getPanelUI(
         id: string,
         components: IPanelComponents,
+        onContext?: (panel: PanelState, event: MouseEvent) => void,
         hook?: IDataHook
     ): IContent {
         const panelState = this.getPanel(id, hook);
@@ -344,6 +345,7 @@ export class AppState {
             return {
                 id,
                 name: panelState.getName(hook),
+                onTabContext: onContext && (e => onContext(panelState, e)),
                 content: <></>,
                 forceOpen: !panelState.canClose(hook),
             };
@@ -352,6 +354,7 @@ export class AppState {
         return {
             id,
             name: panelState.getName(hook),
+            onTabContext: onContext && (e => onContext(panelState, e)),
             content: <PanelComponent state={this} panel={panelState} />,
             forceOpen: !panelState.canClose(hook),
         };

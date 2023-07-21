@@ -62,10 +62,13 @@ export const TabsHeader: FC<
                 onLinkClick={item =>
                     item?.props.itemKey && onSelectTab(item.props.itemKey)
                 }>
-                {tabs.map(({id, name, forceOpen}, i) => (
+                {tabs.map(({id, name, forceOpen, onTabContext}, i) => (
                     <PivotItem
                         key={id}
                         headerText={name}
+                        headerButtonProps={{
+                            onContextMenu: onTabContext as any,
+                        }}
                         itemKey={id}
                         onRenderItemLink={() => (
                             <Tab

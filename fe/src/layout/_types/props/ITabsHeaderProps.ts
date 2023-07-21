@@ -1,3 +1,4 @@
+import {MouseEvent} from "react";
 import {IPoint} from "../../../utils/_types/IPoint";
 import {LayoutState} from "../../LayoutState";
 import {IDragData} from "../IDragData";
@@ -21,5 +22,6 @@ export type ITabData = {
     name: string;
     id: string;
     forceOpen: boolean;
+    onTabContext?: (event: MouseEvent) => void;
     element: HTMLDivElement;
 };

@@ -1,1 +1,0 @@
-VProfile({1,VTab(<2, something("cool Stuff"),and(4)>, name="something"),VTab(VGraph({VNode("start", name="start"), VNode("stop", color="darkred")}, {VEdge("start", "stop", name="stuff"), VEdge("stop", "start", name="stuff", undirected=true)}), name="Graph"),4}, name="test", init="profile")

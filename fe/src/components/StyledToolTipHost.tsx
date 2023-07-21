@@ -4,6 +4,7 @@ import {
     ICalloutProps,
     IContextualMenuProps,
     ITooltipHostProps,
+    TooltipDelay,
     TooltipHost,
     mergeStyleSets,
     useTheme,
@@ -19,6 +20,7 @@ export const StyledTooltipHost: FC<ITooltipHostProps> = props => {
     };
     return (
         <TooltipHost
+            delay={TooltipDelay.long}
             {...props}
             calloutProps={{
                 ...props.calloutProps,

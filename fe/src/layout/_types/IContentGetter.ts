@@ -1,3 +1,4 @@
+import {MouseEvent} from "react";
 import {IDataHook} from "model-react";
 
 /**
@@ -15,5 +16,6 @@ export type IContent = {
     name: string;
     id: string;
     content: JSX.Element;
+    onTabContext?: (event: MouseEvent) => void;
     forceOpen?: boolean;
 };

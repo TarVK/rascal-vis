@@ -68,9 +68,9 @@ export const InfoPanel: FC<{panel: InfoPanelState; state: AppState}> = ({
                 ))}
             </ul>
             <StyledMessageBar>
-                The controls example demonstrates profile selection, although it's
-                important to note that this feature operates exclusively when the value is
-                sourced from a server.
+                The controls example demonstrates profile selection, but it's important to
+                note that this feature operates exclusively when the value is sourced from
+                a server.
             </StyledMessageBar>
             <H2>Features</H2>
             <H3>Synchronization</H3>
@@ -201,7 +201,7 @@ const P: FC = ({children}) => <p>{children}</p>;
 
 const Container: FC = ({children}) => (
     <PanelContainer className={css({display: "flex", justifyContent: "center"})}>
-        <div style={{maxWidth: 800}}>{children}</div>
+        <div style={{maxWidth: 800, height: "fit-content"}}>{children}</div>
     </PanelContainer>
 );
 const Literal: FC = ({children}) => {

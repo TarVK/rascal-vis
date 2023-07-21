@@ -1,13 +1,9 @@
-import React, {FC, useCallback, useEffect, useRef, useState} from "react";
+import React, {FC, useEffect} from "react";
 import {DefaultLayout} from "./layout/DefaultLayout";
 import {usePersistentMemo} from "./utils/usePersistentMemo";
 import {AppState} from "./state/AppState";
 import {IPanelComponents} from "./_types/IPanelComponents";
-import val from "./value.txt";
-import val2 from "./value2.txt";
-import {SearchPanelState} from "./state/SearchPanelState";
 import {StateContext} from "./state/StateContext";
-import {SpecialTabsState} from "./state/SpecialTabsState";
 import {Sidebar} from "./SideBar";
 import {ValuePanel} from "./panelUIs/value/ValuePanel";
 import {SearchPanel} from "./panelUIs/search/SearchPanel";
@@ -15,13 +11,13 @@ import {LayoutPanel} from "./panelUIs/layout/LayoutPanel";
 import {SettingsPanel} from "./panelUIs/settings/SettingsPanel";
 import {InputPanel} from "./panelUIs/input/InputPanel";
 import {InfoPanel} from "./panelUIs/info/InfoPanel";
+import {TabContextMenu} from "./TabContextMenu";
 
 export const App: FC = () => {
     const state = usePersistentMemo(() => {
         const state = new AppState();
-        (window as any).state = state;
+        (window as any).state = state; // Useful for debugging
         state.loadProfilesData();
-        // state.setValueText(val2);
         return state;
     }, []);
     useEffect(() => {
@@ -33,10 +29,16 @@ export const App: FC = () => {
             <div style={{display: "flex", height: "100%"}}>
                 <Sidebar />
                 <div style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}>
-                    <DefaultLayout
-                        state={state.getLayoutState()}
-                        getContent={(id, hook) => state.getPanelUI(id, components, hook)}
-                    />
+                    <TabContextMenu state={state}>
+                        {onContext => (
+                            <DefaultLayout
+                                state={state.getLayoutState()}
+                                getContent={(id, hook) =>
+                                    state.getPanelUI(id, components, onContext, hook)
+                                }
+                            />
+                        )}
+                    </TabContextMenu>
                 </div>
             </div>
         </StateContext.Provider>
