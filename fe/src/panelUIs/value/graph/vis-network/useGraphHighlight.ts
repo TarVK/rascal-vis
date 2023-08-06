@@ -1,13 +1,13 @@
 import {useDataHook} from "model-react";
 import {Network} from "vis-network";
-import {AppState} from "../../../state/AppState";
+import {AppState} from "../../../../state/AppState";
 import {useEffect} from "react";
-import {IGraphDataMap} from "./_types/IGraphDataMaps";
+import {IGraphDataMap} from "../_types/IGraphDataMaps";
 import {
     graphEdgeConstrData,
     graphNodeConstrData,
-} from "../../../state/valueTypes/GraphValueState";
-import {IEntry, IVal} from "../../../_types/IVal";
+} from "../../../../state/valueTypes/GraphValueState";
+import {IEntry, IVal} from "../../../../_types/IVal";
 
 /**
  * Sets up the value highlighting synchronization for the given network

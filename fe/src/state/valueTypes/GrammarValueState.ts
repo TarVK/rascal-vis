@@ -305,6 +305,12 @@ export function getGrammarSymbol(node: IValNode, nodes: INodeMap): IGrammarSymbo
             textAnnotations,
             source,
         };
+    } else if (nameWoSlash == "custom") {
+        const child = nodes[node.children[1]];
+        if (child == undefined) return uk;
+
+        const typeName = checkType(val.children[0], "string")?.value ?? [""];
+        return {type: nameWoSlash, expr: rec(child), typeName, source};
     } else if (nameWoSlash == "conditional") {
         const child = nodes[node.children[0]];
         if (child == undefined) return uk;

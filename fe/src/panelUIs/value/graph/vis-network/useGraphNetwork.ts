@@ -1,6 +1,6 @@
 import {Network, DataSet, Options} from "vis-network";
 import {useEffect, useRef, useMemo, useLayoutEffect, RefObject, useState} from "react";
-import {GraphValueState} from "../../../state/valueTypes/GraphValueState";
+import {GraphValueState} from "../../../../state/valueTypes/GraphValueState";
 
 /**
  * Initializes the graph network in the given container, and takes care of resizing/sharpening

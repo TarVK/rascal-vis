@@ -4,7 +4,6 @@ import {ValuePanelState} from "../../state/ValuePanelState";
 import {useDataHook} from "model-react";
 import {TextPanel} from "./text/TextPanel";
 import {GraphValueState} from "../../state/valueTypes/GraphValueState";
-import {GraphPanel} from "./graph/GraphPanel";
 import {
     DirectionalHint,
     IContextualMenuProps,
@@ -21,6 +20,7 @@ import {ErrorBoundary} from "../../components/ErrorBoundary";
 import {useChangeID} from "../../utils/useChangeID";
 import {usePrevious} from "../../utils/usePrevious";
 import {PanelContainer} from "../../components/PanelContainer";
+import {GraphPanel} from "./graph/GraphPanel";
 
 export const ValuePanel: FC<{state: AppState; panel: ValuePanelState}> = ({
     state,

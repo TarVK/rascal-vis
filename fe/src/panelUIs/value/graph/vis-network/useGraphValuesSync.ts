@@ -1,8 +1,8 @@
 import {useEffect} from "react";
 import {DataSet, Network, Data, Edge, Node} from "vis-network";
-import {IGraphData} from "../../../state/valueTypes/_types/IGraphData";
+import {IGraphData} from "../../../../state/valueTypes/_types/IGraphData";
 import {useTheme} from "@fluentui/react";
-import {GraphValueState} from "../../../state/valueTypes/GraphValueState";
+import {GraphValueState} from "../../../../state/valueTypes/GraphValueState";
 import {useDataHook} from "model-react";
 
 /**
@@ -14,7 +14,7 @@ export function useGraphValuesSync(network: Network | null, graphState: GraphVal
     const theme = useTheme();
     const [h] = useDataHook();
     const graphData = graphState.graph.get(h);
-    const positions = graphState.positions.get(h);
+    const positions = graphState.nodePositions.get(h);
 
     useEffect(() => {
         if (!network || !graphData) return;

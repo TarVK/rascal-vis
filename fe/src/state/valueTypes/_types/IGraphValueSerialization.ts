@@ -1,8 +1,8 @@
-import {IGraphPositions} from "./IGraphPositions";
+import {IGraphNodePositions} from "./IGraphPositions";
 import {IGraphView} from "./IGraphView";
 
 export type IGraphValueSerialization = {
     type: "graph";
     view?: IGraphView;
-    positions?: IGraphPositions;
+    positions?: IGraphNodePositions;
 };

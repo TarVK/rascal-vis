@@ -11,10 +11,15 @@ import {IValNode} from "../../_types/IValNode";
 import {TPartialBy} from "../../utils/_types/TPartialBy";
 import Color from "color";
 import {IGraphView} from "./_types/IGraphView";
-import {IGraphPositions} from "./_types/IGraphPositions";
+import {
+    IGraphEdgePosition,
+    IGraphNodePosition,
+    IGraphNodePositions,
+} from "./_types/IGraphPositions";
 import {deepEquals} from "../../value/deepEquals";
 import {nonNullFilter} from "../../utils/nonNullFilter";
 import {ValuePanelState} from "../ValuePanelState";
+import {IVal} from "../../_types/IVal";
 
 /** Data about graph constructors */
 export const graphConstrData = {
@@ -55,7 +60,75 @@ export class GraphValueState extends BaseValueTypeState {
     public view = new Field<IGraphView | null>(null);
 
     /** The node positions data for the graph */
-    public positions = new Field<IGraphPositions | null>(null);
+    public nodePositions = new Field<IGraphNodePositions | null>(null);
+
+    public positionLookupMap = new DataCacher(h => {
+        const nodePositions = this.nodePositions.get(h);
+        if (!nodePositions) return;
+
+        const nodeMap = new Map<string, IGraphNodePosition>();
+        const edgeMap = new Map<
+            string,
+            Map<string, Map<string | undefined, IGraphEdgePosition[]>>
+        >();
+        nodePositions.forEach(node => {
+            nodeMap.set(node.id.id + "", node);
+        });
+        // edges.forEach(edge => {
+        //     if (!edgeMap.has(edge.start.id)) edgeMap.set(edge.start.id, new Map());
+        //     const toEdges = edgeMap.get(edge.start.id)!;
+
+        //     if (!toEdges.has(edge.end.id)) toEdges.set(edge.end.id, new Map());
+        //     const labels = toEdges.get(edge.end.id)!;
+
+        //     if (!labels.has(edge.name)) labels.set(edge.name, []);
+        //     const edges = labels.get(edge.name)!;
+
+        //     edges.push(edge);
+        // });
+
+        console.log(nodePositions);
+
+        return {
+            getNode: (id: string) => nodeMap.get(id),
+            getEdges: (from: string, to: string, text: string | undefined) =>
+                edgeMap.get(from)?.get(to)?.get(text) ?? [],
+        };
+    });
+
+    public lookupMap = new DataCacher(h => {
+        const data = this.graph.get(h);
+        if (!data) return;
+        const {nodes, edges} = data;
+
+        const nodeMap = new Map<string, IGraphNodeData>();
+        const edgeMap = new Map<
+            string,
+            Map<string, Map<string | undefined, IGraphEdgeData[]>>
+        >();
+        nodes.forEach(node => {
+            nodeMap.set(node.id.id + "", node);
+        });
+        edges.forEach(edge => {
+            if (!edgeMap.has(edge.start.id + ""))
+                edgeMap.set(edge.start.id + "", new Map());
+            const toEdges = edgeMap.get(edge.start.id + "")!;
+
+            if (!toEdges.has(edge.end.id + "")) toEdges.set(edge.end.id + "", new Map());
+            const labels = toEdges.get(edge.end.id + "")!;
+
+            if (!labels.has(edge.name)) labels.set(edge.name, []);
+            const edges = labels.get(edge.name)!;
+
+            edges.push(edge);
+        });
+
+        return {
+            getNode: (id: string) => nodeMap.get(id),
+            getEdges: (from: string, to: string, text: string | undefined) =>
+                edgeMap.get(from)?.get(to)?.get(text) ?? [],
+        };
+    });
 
     public constructor(panel: ValuePanelState) {
         super(panel);
@@ -88,31 +161,34 @@ export class GraphValueState extends BaseValueTypeState {
         return {
             type: "graph",
             view: this.view.get() ?? undefined,
-            positions: this.positions.get() ?? undefined,
+            positions: this.nodePositions.get() ?? undefined,
         };
     }
 
     /** @override */
     public deserialize(value: IGraphValueSerialization): void {
         this.view.set(value.view ?? null);
-        this.positions.set(value.positions ?? null);
+        this.nodePositions.set(value.positions ?? null);
+        console.log(value.positions);
     }
 
     /**
      * Updates the sources of the position data
      */
     public updatePositionsSources() {
-        const positions = this.positions.get();
+        const positions = this.nodePositions.get();
         const graph = this.graph.get();
+        console.log(positions);
         if (!positions || !graph) return;
         const newPositions = positions
             .map(({id, position}) => {
                 const newNode = graph.nodes.find(({id: idNew}) => deepEquals(id, idNew));
+                console.log(graph.nodes, id);
                 if (!newNode) return null;
                 return {id: newNode.id, position};
             })
             .filter(nonNullFilter);
-        this.positions.set(newPositions);
+        this.nodePositions.set(newPositions);
     }
 }
 

@@ -132,7 +132,7 @@ const InputOption: FC<{selected: boolean; onSelect: () => void; name: string}> =
     return (
         <div
             style={{
-                overflow: "auto",
+                overflow: "hidden",
                 backgroundColor: theme.palette.neutralLighterAlt,
                 marginBottom: 10,
             }}>

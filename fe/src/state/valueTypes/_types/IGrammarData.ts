@@ -101,6 +101,11 @@ export type IGrammarSymbol = TSourced<
           annotations: ISet;
           textAnnotations: IEscapedString[];
       }
+    | {
+          type: "custom";
+          typeName: IEscapedString;
+          expr: IGrammarSymbol;
+      }
 >;
 
 export type IGrammarCondition = TSourced<

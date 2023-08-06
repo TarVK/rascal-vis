@@ -1,9 +1,9 @@
 import {useEffect, useRef} from "react";
 import {Network} from "vis-network";
-import {GraphValueState} from "../../../state/valueTypes/GraphValueState";
+import {GraphValueState} from "../../../../state/valueTypes/GraphValueState";
 import {useDataHook} from "model-react";
-import {IGraphDataMap} from "./_types/IGraphDataMaps";
-import {nonNullFilter} from "../../../utils/nonNullFilter";
+import {IGraphDataMap} from "../_types/IGraphDataMaps";
+import {nonNullFilter} from "../../../../utils/nonNullFilter";
 
 /**
  * Synchronizes the view and node data between the state and the network visualization
@@ -18,7 +18,7 @@ export function useGraphPositionsSync(
 ): void {
     const [h] = useDataHook();
     const view = graphState.view.get(h);
-    const positions = graphState.positions.get(h);
+    const positions = graphState.nodePositions.get(h);
     const graph = graphState.graph.get(h);
 
     const ignoreIdData = useRef({set: 1, updated: 0});
@@ -58,7 +58,7 @@ export function useGraphPositionsSync(
                     return {id: node.id, position};
                 })
                 .filter(nonNullFilter);
-            graphState.positions.set(positions);
+            graphState.nodePositions.set(positions);
             ignoreIdData.current.set++;
         };
 

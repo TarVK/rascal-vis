@@ -8,14 +8,14 @@ import React, {
     MouseEvent as RMouseEvent,
 } from "react";
 import {Network, DataSet, Options} from "vis-network";
-import {IVal} from "../../../_types/IVal";
-import {AppState} from "../../../state/AppState";
-import {IGraphDataMap} from "./_types/IGraphDataMaps";
-import {IValNode} from "../../../_types/IValNode";
-import {StyledContextMenu} from "../../../components/StyledContextMenu";
-import {graphNodeConstrData} from "../../../state/valueTypes/GraphValueState";
-import {ASTtoText} from "../../../value/ASTtoText";
-import {copy} from "../../../utils/copy";
+import {IVal} from "../../../../_types/IVal";
+import {AppState} from "../../../../state/AppState";
+import {IGraphDataMap} from "../_types/IGraphDataMaps";
+import {IValNode} from "../../../../_types/IValNode";
+import {StyledContextMenu} from "../../../../components/StyledContextMenu";
+import {graphNodeConstrData} from "../../../../state/valueTypes/GraphValueState";
+import {ASTtoText} from "../../../../value/ASTtoText";
+import {copy} from "../../../../utils/copy";
 
 /**
  * Sets up a context menu handler for the network

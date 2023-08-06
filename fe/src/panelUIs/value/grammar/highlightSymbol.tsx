@@ -86,6 +86,15 @@ export function highlightSymbol(
                 <span className="symLabelName identifier">{getText(symbol.name)}</span>
             </span>
         );
+    } else if (symbol.type == "custom") {
+        return (
+            <span className="symbol custom" {...attrs}>
+                <span className="symType identifier">{getText(symbol.typeName)}</span>
+                <span className="glyph">{"<"}</span>
+                {rec(symbol.expr)}
+                <span className="glyph">{">"}</span>
+            </span>
+        );
     } else if (symbol.type == "lit") {
         return (
             <span className="symbol lit" {...attrs}>
@@ -184,7 +193,10 @@ export function highlightSymbol(
                             </div>
                         ))}
                         <div className="glyph">
-                            { settings.showHandle == "always" && <span style={{width: 10, display: "inline-block"}} />})
+                            {settings.showHandle == "always" && (
+                                <span style={{width: 10, display: "inline-block"}} />
+                            )}
+                            )
                         </div>
                     </div>
                 </span>

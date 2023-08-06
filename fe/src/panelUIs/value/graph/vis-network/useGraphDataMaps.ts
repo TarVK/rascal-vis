@@ -3,8 +3,8 @@ import {
     IGraphData,
     IGraphEdgeData,
     IGraphNodeData,
-} from "../../../state/valueTypes/_types/IGraphData";
-import {IGraphDataMap} from "./_types/IGraphDataMaps";
+} from "../../../../state/valueTypes/_types/IGraphData";
+import {IGraphDataMap} from "../_types/IGraphDataMaps";
 
 /**
  * Obtains a node and edge map for the given graph
