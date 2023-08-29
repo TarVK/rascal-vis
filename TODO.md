@@ -7,7 +7,7 @@
     - [x] Add settings saving
 - [x] Add layout profiles
     - [x] Add layout saving
-- [ ] Add welcome screen
+- [x] Add welcome screen
 - [x] Add special data constructors: 
     - [x] layout/settings selection constructor
         - [x] highlight/focus constructors

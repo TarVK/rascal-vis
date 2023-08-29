@@ -104,18 +104,41 @@ export function matchesPattern(node: IVal, pattern: IValPlainPattern): boolean {
             return matchesSequence(node.children, 0, pattern.children);
         } else if (pattern.type == "set") {
             if (node.type != "set") return false;
-            return node.children.every(value =>
-                pattern.children.some(valuePattern => matchesPattern(value, valuePattern))
-            );
+            let unmatchedPatterns = new Set(pattern.children);
+
+            // Note, we both check that every value is included in the pattern, and all parts of the pattern are included in some value.
+            for (const value of node.children) {
+                let matchesSome = false;
+                for (const valuePattern of pattern.children) {
+                    if (matchesPattern(value, valuePattern)) {
+                        matchesSome = true;
+                        unmatchedPatterns.delete(valuePattern);
+                    }
+                }
+                if (!matchesSome) return false;
+            }
+
+            return unmatchedPatterns.size == 0;
         } else if (pattern.type == "map") {
             if (node.type != "map") return false;
-            return node.children.every(({key, value}) =>
-                pattern.children.some(({key: keyPattern, value: valuePattern}) => {
-                    if (!matchesPattern(key, keyPattern)) return false;
-                    if (!matchesPattern(value, valuePattern)) return false;
-                    return true;
-                })
-            );
+
+            // Note, we both check that every value is included in the pattern, and all parts of the pattern are included in some value.
+            let unmatchedPatterns = new Set(pattern.children);
+            for (const {key, value} of node.children) {
+                let matchesSome = false;
+                for (const p of pattern.children) {
+                    const {key: keyPattern, value: valuePattern} = p;
+
+                    if (!matchesPattern(key, keyPattern)) continue;
+                    if (!matchesPattern(value, valuePattern)) continue;
+
+                    matchesSome = true;
+                    unmatchedPatterns.delete(p);
+                }
+                if (!matchesSome) return false;
+            }
+
+            return unmatchedPatterns.size == 0;
         }
     }
     return false;

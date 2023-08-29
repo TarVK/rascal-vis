@@ -30,8 +30,8 @@ export class SettingsState extends PanelState {
             deleteUnusedPanels: false,
         },
         search: {
-            initialLoadCount: 50,
-            loadMoreCount: 50,
+            initialLoadCount: 20,
+            loadMoreCount: 20,
         },
         graph: {
             sharpness: 1.5,

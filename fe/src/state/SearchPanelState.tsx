@@ -110,6 +110,7 @@ export class SearchPanelState extends PanelState {
                         context: [],
                         inline: <ShowAll value={match.value} />,
                     },
+                    range: 0,
                 };
                 grouped.set(match.value, {
                     node: category,
@@ -139,6 +140,7 @@ export class SearchPanelState extends PanelState {
                     id: pId,
                     children: [p.id],
                     notOpenable: true,
+                    range: p.range + 1,
                 };
             }
 

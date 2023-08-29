@@ -64,7 +64,25 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
     }, [matchTree]);
     const trimmedMatchTree = useMemo(() => {
         if (!matchTree) return null;
-        const included = matchTree.slice(0, showCount);
+
+        const root = matchTree[0];
+        const included = [root];
+
+        let i = 0,
+            offset = 1;
+        while (i < showCount && offset < matchTree.length) {
+            const match = matchTree[offset];
+            const isCategory = root.children.includes(match.id);
+            if (isCategory) {
+                included.push(match);
+                offset++;
+            } else {
+                included.push(...matchTree.slice(offset, offset + 1 + match.range));
+                offset += match.range + 1;
+                i++;
+            }
+        }
+
         const includedSet = new Set(included.map(({id}) => id));
         return included.map(data => ({
             ...data,
@@ -132,7 +150,7 @@ export const SearchPanel: FC<{panel: SearchPanelState; state: AppState}> = ({
                 })}`}>
                 <HoverContextProvider state={state}>
                     <ResettingHighlighCache sizeRef={sizeRef}>
-                        {trimmedMatchTree?.length && (
+                        {trimmedMatchTree && (trimmedMatchTree?.length ?? 0) > 0 && (
                             <TreeView
                                 data={trimmedMatchTree}
                                 aria-label="text value view"
