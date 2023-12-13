@@ -181,9 +181,11 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
     const expandHandler = useGrammarExpandHandler(grammarState);
     if (!grammar) return <></>;
 
+    const starts = grammar.start.map(({source}) => source.value);
     return (
         <div>
             {grammar.rules
+                .sort(({key}, b) => (starts.includes(key.source.value) ? -1 : 0))
                 .filter(
                     ({key}) =>
                         !(
@@ -200,6 +202,7 @@ export const GrammarComp: FC<{state: AppState; grammarState: GrammarValueState}>
                         symbol={key}
                         production={value}
                         source={source}
+                        start={starts.includes(key.source.value)}
                     />
                 ))}
 
@@ -220,7 +223,8 @@ export const ProductionComp: FC<{
     production: IGrammarProduction;
     symbol: IGrammarSymbol;
     source: IValNode;
-}> = ({handler, expandHandler, production, symbol, source}) => {
+    start: boolean;
+}> = ({handler, expandHandler, production, symbol, source, start}) => {
     const state = useAppState();
     const [h] = useDataHook();
     const settings = state.getSettings(h).grammar;
@@ -266,20 +270,35 @@ export const ProductionComp: FC<{
                     display: "flex",
                     marginRight: dedent ? -15 : 5,
                     gap: 5,
-                    flexShrink: 0,
+                    // flexShrink: 0,
                 }}>
-                <span className="keyword">{label}</span>
                 <span
-                    style={{cursor: "pointer"}}
-                    className={`symbol`}
-                    id={source.value.id + ""}>
-                    {symbolHighlight}
+                    style={
+                        start
+                            ? {
+                                  fontStyle: "italic",
+                                  fontWeight: 900,
+                              }
+                            : undefined
+                    }>
+                    <span className="keyword">{label}</span>{" "}
+                    <span
+                        style={{
+                            cursor: "pointer",
+                            wordBreak: "break-all",
+                        }}
+                        className={`symbol`}
+                        id={source.value.id + ""}>
+                        {symbolHighlight}
+                    </span>
                 </span>
                 <div style={{flexGrow: 1, textAlign: "right"}} className="glyph">
                     =
                 </div>
             </div>
-            <span className="grammarDefinition" style={{cursor: "pointer"}}>
+            <span
+                className="grammarDefinition"
+                style={{cursor: "pointer", minWidth: "70%"}}>
                 {productionHighlight}
             </span>
         </div>

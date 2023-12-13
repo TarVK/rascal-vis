@@ -187,7 +187,7 @@ export function highlightSymbol(
                                         marginLeft: -indent,
                                         textAlign: "right",
                                     }}>
-                                    {symbol.type == "alt" ? "|" : ""}
+                                    {symbol.type == "alt" ? "|" : "."}
                                 </span>
                                 {rec(c)}
                             </div>
@@ -221,10 +221,10 @@ export function highlightSymbol(
                 <span className="glyph">(</span>
                 {symbol.expr.map(rec).map((el, i) => (
                     <Fragment key={i}>
-                        {i != 0 && symbol.type == "alt" ? (
+                        {i == 0 ? undefined : symbol.type == "alt" ? (
                             <span className="glyph">|</span>
                         ) : (
-                            ""
+                            <span className="glyph">.</span>
                         )}
                         {el}
                     </Fragment>

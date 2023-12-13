@@ -162,7 +162,7 @@ const loc = P.seq(
         comma,
         position,
         P.string(")")
-    ).or(P.empty())
+    ).or(P.succeed(undefined))
 ).map(([_1, uri, _2, position]) => ({
     type: "location" as const,
     uri,
@@ -203,11 +203,12 @@ const repeatPattern = <T>(value: Parser<T>) =>
 
 const regexPattern = P<IRegex>((input, i) => {
     const result: Reply<unknown> = (
-        P.seq(P.string("/"), P.regex(/([^/])*/), P.string("/")) as any
+        P.seq(P.string("/"), P.regex(/(\\.|[^/])*/), P.string("/")) as any
     )._(input, i);
 
     if (!result.status) return result;
     try {
+        console.log(result);
         const regex = new RegExp((result.value as any)[1]);
         return P.makeSuccess(result.index, {type: "regex", regex});
     } catch (e) {

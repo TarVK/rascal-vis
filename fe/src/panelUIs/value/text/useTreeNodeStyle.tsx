@@ -1,6 +1,8 @@
 import {css} from "@emotion/css";
 import {useState, useRef, useEffect} from "react";
 import {useTheme} from "@fluentui/react";
+import {useAppState} from "../../../state/StateContext";
+import {useDataHook} from "model-react";
 
 export function useTreeNodeStyle() {
     const [keyboardSelect, setKeyboardSelect] = useState(false);
@@ -20,6 +22,10 @@ export function useTreeNodeStyle() {
         };
     }, [root]);
 
+    const state = useAppState();
+    const [h] = useDataHook();
+    const darkMode = state.getGlobalSettings(h).darkMode;
+
     return [
         css({
             // Remove default styling
@@ -38,7 +44,9 @@ export function useTreeNodeStyle() {
             },
             ".tree-node--focused": {
                 background: keyboardSelect
-                    ? theme.palette.neutralLight
+                    ? darkMode
+                        ? theme.palette.neutralLight
+                        : theme.palette.neutralLighter
                     : theme.palette.neutralLighterAlt,
             },
         }),

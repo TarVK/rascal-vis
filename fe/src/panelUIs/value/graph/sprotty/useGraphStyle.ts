@@ -1,8 +1,12 @@
 import {css} from "@emotion/css";
 import {useTheme} from "@fluentui/react";
+import {useAppState} from "../../../../state/StateContext";
+import {useDataHook} from "model-react";
 
 export function useGraphStyle() {
     const theme = useTheme();
+    const [h] = useDataHook();
+    const darkMode = useAppState().getGlobalSettings(h).darkMode;
     return css({
         width: "100%",
         height: "100%",
@@ -17,16 +21,20 @@ export function useGraphStyle() {
         ".node": {
             fill: theme.palette.themeSecondary,
         },
+        "g:has(.node)>text": {
+            stroke: darkMode ? theme.palette.black : theme.palette.white,
+            fill: darkMode ? theme.palette.black : theme.palette.white,
+        },
         ".selected .node": {
             fill: theme.palette.themeDarkAlt,
         },
         ".sprotty-edge": {
             fill: "none",
-            stroke: theme.palette.themeTertiary,
+            stroke: darkMode ? theme.palette.themeTertiary : theme.palette.themeDark,
             strokeWidth: 3,
             "& polygon": {
                 strokeWidth: 0,
-                fill: theme.palette.themeTertiary,
+                fill: darkMode ? theme.palette.themeTertiary : theme.palette.themeDark,
             },
         },
         ".sprotty-routing-handle": {

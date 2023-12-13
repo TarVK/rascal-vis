@@ -12,7 +12,10 @@ export function matchesPattern(node: IVal, pattern: IValPlainPattern): boolean {
     else if (pattern.type == "textPattern")
         return node.type == "string" && node.valuePlain.includes(pattern.valuePlain);
     else if (pattern.type == "regex")
-        return node.type == "string" && node.valuePlain.search(pattern.regex) != -1;
+        return (
+            (node.type == "string" && node.valuePlain.search(pattern.regex) != -1) ||
+            (node.type == "location" && node.uri.search(pattern.regex) != -1)
+        );
     else if (pattern.type == "or")
         return pattern.options.some(p => matchesPattern(node, p));
     else if (pattern.type == "boolean") {
@@ -106,6 +109,8 @@ export function matchesPattern(node: IVal, pattern: IValPlainPattern): boolean {
             if (node.type != "set") return false;
             let unmatchedPatterns = new Set(pattern.children);
 
+            // TODO: Check unmatched properly consider sequence matchers
+
             // Note, we both check that every value is included in the pattern, and all parts of the pattern are included in some value.
             for (const value of node.children) {
                 let matchesSome = false;
@@ -121,6 +126,8 @@ export function matchesPattern(node: IVal, pattern: IValPlainPattern): boolean {
             return unmatchedPatterns.size == 0;
         } else if (pattern.type == "map") {
             if (node.type != "map") return false;
+
+            // TODO: Check unmatched properly consider sequence matchers
 
             // Note, we both check that every value is included in the pattern, and all parts of the pattern are included in some value.
             let unmatchedPatterns = new Set(pattern.children);

@@ -50,11 +50,15 @@ export const SettingsProfileSelection: FC<{panel: SettingsState; state: AppState
     }, []);
     const theme = useTheme();
 
+    const darkMode = state.getGlobalSettings(h).darkMode;
+
     return (
         <>
             <div
                 style={{
-                    boxShadow: "rgb(87 87 87 / 35%) 0px 0px 0px 1px inset",
+                    boxShadow: darkMode
+                        ? "rgb(87 87 87 / 35%) 0px 0px 0px 1px inset"
+                        : "rgb(87 87 87 / 21%) 0px 0px 2px 1px inset",
                     minHeight: 5,
                 }}
             />

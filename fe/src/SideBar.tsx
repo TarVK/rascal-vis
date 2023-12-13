@@ -16,6 +16,11 @@ export const Sidebar: FC = () => {
     const state = useAppState();
     const tabsState = state.specialTabs;
     const githubId = useId("github");
+
+    const themeId = useId("theme");
+    const [h] = useDataHook();
+    const darkMode = state.getGlobalSettings(h).darkMode;
+
     return (
         <>
             <div
@@ -31,6 +36,17 @@ export const Sidebar: FC = () => {
 
                 <div style={{flexGrow: 1}} />
                 <StyledTooltipHost
+                    content={`Enable ${darkMode ? "light" : "dark"} mode`}
+                    directionalHint={DirectionalHint.rightCenter}
+                    id={themeId}>
+                    <IconEl
+                        tooltipId={themeId}
+                        name="dark mode"
+                        icon={darkMode ? "ClearNight" : "Sunny"}
+                        onClick={() => state.updateGlobalSettings({darkMode: !darkMode})}
+                    />
+                </StyledTooltipHost>
+                <StyledTooltipHost
                     content="Github repository"
                     directionalHint={DirectionalHint.rightCenter}
                     id={githubId}>
@@ -45,6 +61,7 @@ export const Sidebar: FC = () => {
                             <GithubIcon
                                 width={size * 0.55}
                                 color={theme.palette.neutralPrimary}
+                                hoverColor={theme.palette.themePrimary}
                             />
                         )}
                         aria-label="Github"
@@ -78,22 +95,14 @@ export const SidebarButton: FC<{
     const isVisible = specialTabs.isVisible(panel, h);
 
     const iconEl = (
-        <IconButton
-            aria-describedby={tooltipId}
-            className={css({
-                width: size,
-                height: size,
-                color: theme.palette.neutralPrimary,
-                backgroundColor: isVisible
-                    ? theme.palette.neutralLighterAlt
-                    : theme.palette.neutralLight,
-            })}
-            iconProps={{iconName: icon, style: {fontSize: size * 0.5}}}
-            aria-label={name}
+        <IconEl
+            tooltipId={tooltipId}
+            isVisible={isVisible}
+            name={name}
+            icon={icon}
             onClick={onClick}
         />
     );
-
     const state = useAppState();
     const ref = useDragStart((position, offset) => {
         const layout = state.getLayoutState();
@@ -116,5 +125,31 @@ export const SidebarButton: FC<{
             id={tooltipId}>
             <div ref={ref}>{iconEl}</div>
         </StyledTooltipHost>
+    );
+};
+
+const IconEl: FC<{
+    tooltipId: string;
+    isVisible?: boolean;
+    name: string;
+    icon: string;
+    onClick: () => void;
+}> = ({tooltipId, isVisible = false, name, icon, onClick}) => {
+    const theme = useTheme();
+    return (
+        <IconButton
+            aria-describedby={tooltipId}
+            className={css({
+                width: size,
+                height: size,
+                color: theme.palette.neutralPrimary,
+                backgroundColor: isVisible
+                    ? theme.palette.neutralLighterAlt
+                    : theme.palette.neutralLight,
+            })}
+            iconProps={{iconName: icon, style: {fontSize: size * 0.5}}}
+            aria-label={name}
+            onClick={onClick}
+        />
     );
 };

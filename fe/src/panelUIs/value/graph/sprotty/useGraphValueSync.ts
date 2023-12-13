@@ -215,7 +215,7 @@ export function useGraphValueSync(
             // if (!view)
             diagram
                 .get<IActionDispatcher>(TYPES.IActionDispatcher)
-                .dispatch(new FitToScreenAction([], 5, undefined, false));
+                .dispatch(new FitToScreenAction([], 15, undefined, false));
         });
 
         return () => {

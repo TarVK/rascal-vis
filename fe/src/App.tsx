@@ -12,7 +12,12 @@ import {SettingsPanel} from "./panelUIs/settings/SettingsPanel";
 import {InputPanel} from "./panelUIs/input/InputPanel";
 import {InfoPanel} from "./panelUIs/info/InfoPanel";
 import {TabContextMenu} from "./TabContextMenu";
+import {ThemeProvider} from "@devtools-ds/themes";
+import {initializeIcons, ThemeProvider as FluentThemeProvider} from "@fluentui/react";
+import {darkTheme, lightTheme} from "./theme";
+import {useDataHook} from "model-react";
 
+initializeIcons();
 export const App: FC = () => {
     const state = usePersistentMemo(() => {
         const state = new AppState();
@@ -25,7 +30,7 @@ export const App: FC = () => {
     }, [state]);
 
     return (
-        <StateContext.Provider value={state}>
+        <ContextAndThemeProvider state={state}>
             <div style={{display: "flex", height: "100%"}}>
                 <Sidebar />
                 <div style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}>
@@ -41,7 +46,7 @@ export const App: FC = () => {
                     </TabContextMenu>
                 </div>
             </div>
-        </StateContext.Provider>
+        </ContextAndThemeProvider>
     );
 };
 
@@ -53,4 +58,19 @@ const components: IPanelComponents = {
     settings: SettingsPanel,
     input: InputPanel,
     info: InfoPanel,
+};
+
+const ContextAndThemeProvider: FC<{state: AppState}> = ({state, children}) => {
+    const [h] = useDataHook();
+    const darkMode = state.getGlobalSettings(h).darkMode;
+
+    return (
+        <StateContext.Provider value={state}>
+            <FluentThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+                <ThemeProvider theme={"chrome"} colorScheme={"dark"}>
+                    {children}
+                </ThemeProvider>
+            </FluentThemeProvider>
+        </StateContext.Provider>
+    );
 };

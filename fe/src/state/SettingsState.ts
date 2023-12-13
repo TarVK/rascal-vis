@@ -12,6 +12,7 @@ import {ISettings} from "./_types/ISettings";
 import {TDeepPartial} from "./_types/TDeepPartial";
 import {v4 as uuid} from "uuid";
 import {merge} from "../utils/deepMerge";
+import {IGlobalSettings} from "./_types/IGlobalSettings";
 
 /**
  * The settings for the application
@@ -21,6 +22,10 @@ export class SettingsState extends PanelState {
     protected appState: AppState;
 
     protected profiles = new Field<Map<string, IProfile>>(new Map());
+
+    public readonly globalSettings = new Field<IGlobalSettings>({
+        darkMode: true,
+    });
 
     protected profileId = new Field<string>("default");
     protected profileName = new Field<string>("default");
@@ -130,6 +135,24 @@ export class SettingsState extends PanelState {
 
     // Settings
     /**
+     * Retrieves the global settings
+     * @param hook The hook to subscribe to changes
+     * @returns The current global settings
+     */
+    public getGlobalSettings(hook?: IDataHook): IGlobalSettings {
+        return this.globalSettings.get(hook);
+    }
+
+    /**
+     * Updates the global settings of the application
+     * @param settings The global settings of the application
+     */
+    public updateGlobalSettings(settings: TDeepPartial<IGlobalSettings>): void {
+        const current = this.globalSettings.get();
+        this.globalSettings.set(merge(current, settings) as IGlobalSettings);
+    }
+
+    /**
      * Retrieves the settings
      * @param hook The hook to subscribe to changes
      * @returns The current settings
@@ -224,7 +247,11 @@ export class SettingsState extends PanelState {
         const profiles = [...this.profiles.get().values()];
         localStorage.setItem(
             "rascal-vis",
-            JSON.stringify({selected: this.profileId.get(), profiles})
+            JSON.stringify({
+                selected: this.profileId.get(),
+                profiles,
+                global: this.globalSettings.get(),
+            })
         );
     }
 
@@ -241,6 +268,8 @@ export class SettingsState extends PanelState {
             }
 
             const data = JSON.parse(dataText);
+            if (data.global) this.globalSettings.set(data.global);
+
             const map = new Map<string, IProfile>();
             data.profiles.forEach((profile: IProfile) => map.set(profile.id, profile));
             this.profiles.set(map);

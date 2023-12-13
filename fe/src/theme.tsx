@@ -32,39 +32,70 @@ export const darkTheme = createTheme({
     },
 });
 
-export const highlightTheme = (theme: ITheme): CSSObject => ({
-    ".identifier": {
-        color: "white",
+// This light theme is made later, colors are picked arbitrarily to look decent without changing the rest of the UI
+export const lightTheme = createTheme({
+    palette: {
+        themePrimary: "#45aeff",
+        themeLighterAlt: "#03070a",
+        themeLighter: "#0b1c29",
+        themeLight: "#15344d",
+        themeTertiary: "#c7e7ff",
+        themeSecondary: "#106ebe",
+        themeDarkAlt: "#57b6ff",
+        themeDark: "#57b6ff",
+        themeDarker: "#106ebe",
+        neutralLighterAlt: "#f4f4f4",
+        neutralLighter: "#e9e9e9",
+        neutralLight: "#ffffff",
+        neutralQuaternaryAlt: "#d6D6d6",
+        neutralQuaternary: "#dddddd",
+        neutralTertiaryAlt: "#b7b7b7",
+        neutralTertiary: "#55574d",
+        neutralSecondary: "#4f5046",
+        neutralPrimaryAlt: "#46483f",
+        neutralPrimary: "#393a32",
+        neutralDark: "#31322b",
+        black: "#272822",
+        white: "#fdfdfd",
     },
-    ".glyph, .name, .location, .arrow, .prodLabel, .symLabelName": {
-        color: "#bbbbbb",
+    semanticColors: {
+        errorText: "#bb2222",
     },
-    ".string, .lit, .cilit": {
-        color: "#dadb74",
-    },
-    ".number, .boolean, .escaped": {
-        color: "#ae81ff",
-    },
-    ".collapse, .count, .label, .prodTag, .prodTag *": {
-        color: "#747474",
-    },
-    ".context": {
-        color: "#747474",
-    },
-    ".count, .label, .prodLabel, .symLabelName": {
-        fontStyle: "italic",
-    },
-    ".greyOut, .greyOut *": {
-        color: "#bbbbbb !important",
-    },
-    ".highlight": {
-        color: theme.palette.themeDark,
-    },
-    ".keyword": {
-        color: new Color(theme.palette.themeSecondary).lighten(0.4).toString(),
-        whiteSpace: "nowrap",
-    },
-    ".annotation": {
-        color: theme.palette.themeDarker
-    }
 });
+
+export const highlightTheme = (theme: ITheme): CSSObject => {
+    const darkMode = theme.palette.black == darkTheme.palette.black;
+    return {
+        ".identifier": {
+            color: darkMode ? "white" : "black",
+        },
+        ".glyph, .name, .location, .arrow, .prodLabel, .symLabelName": {
+            color: darkMode ? "#bbbbbb" : "#aaaaaa",
+        },
+        ".string, .lit, .cilit": {
+            color: darkMode ? "#dadb74" : "#bf0fbf",
+        },
+        ".number, .boolean, .escaped": {
+            color: darkMode ? "#ae81ff" : "#4d0fbf",
+        },
+        ".collapse, .count, .label, .prodTag, .prodTag *, .context": {
+            color: darkMode ? "#747474" : "#bbbbbb",
+        },
+        ".count, .label, .prodLabel, .symLabelName": {
+            fontStyle: "italic",
+        },
+        ".greyOut, .greyOut *": {
+            color: "#bbbbbb !important",
+        },
+        ".highlight": {
+            color: theme.palette.themeDark,
+        },
+        ".keyword": {
+            color: new Color(theme.palette.themeSecondary).lighten(0.4).toString(),
+            whiteSpace: "nowrap",
+        },
+        ".annotation": {
+            color: theme.palette.themeDarker,
+        },
+    };
+};

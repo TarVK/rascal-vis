@@ -10,6 +10,7 @@ export const ResizeHandle: FC<IResizeHandleProps> = ({direction}) => {
                 width: direction == "horizontal" ? 10 : "100%",
                 height: direction == "vertical" ? 10 : "100%",
                 boxShadow: "inset #0000004d 0px 0px 6px 2px",
+                // backgroundColor: theme.palette.neutralQuaternary,
             }}></div>
     );
 };

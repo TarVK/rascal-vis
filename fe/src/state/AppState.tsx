@@ -20,6 +20,7 @@ import {getValueProfile} from "./valueData/getValueProfile";
 import {getValueHighlight} from "./valueData/getValueHighlight";
 import {NodeId} from "react-accessible-treeview";
 import {getValueTabs} from "./valueData/getValueTabs";
+import {IGlobalSettings} from "./_types/IGlobalSettings";
 
 /**
  * Representing all application state data
@@ -507,6 +508,23 @@ export class AppState {
      */
     public updateSettings(settings: TDeepPartial<ISettings>): void {
         this.specialTabs.settings.updateSettings(settings);
+    }
+
+    /**
+     * Retrieves the global settings
+     * @param hook The hook to subscribe to changes
+     * @returns The current global settings
+     */
+    public getGlobalSettings(hook?: IDataHook): IGlobalSettings {
+        return this.specialTabs.settings.getGlobalSettings(hook);
+    }
+
+    /**
+     * Updates the settings of the application
+     * @param settings The settings of the application
+     */
+    public updateGlobalSettings(settings: TDeepPartial<IGlobalSettings>): void {
+        this.specialTabs.settings.updateGlobalSettings(settings);
     }
 
     /**
