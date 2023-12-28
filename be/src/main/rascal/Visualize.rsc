@@ -100,7 +100,9 @@ public data RascalVisSettings = VSettings(
     // Whether to show layout symbols in the grammar
     bool grammarShowLayout=false,
     // The minimum lhs width in the grammar, for better alignment
-    int grammarAlignWidth=150
+    int grammarAlignWidth=150,
+    // When to show the grammar expansion handles
+    str grammarShowHandle="hover"
 );
 
 @doc {
@@ -152,3 +154,10 @@ public data RascalVisGraphEdge = VEdge(
     // Any additional meta data for the edge
     value meta=false  
 );
+
+@doc {
+    Rascal-vis grammar augmentation, text annotations will be vshown
+}
+data Symbol = annotate(Symbol sym, set[value] annotations)
+            // A custom symbol type, useful for grammar transformations with different semantics to the ones from the build-in symbols
+            | custom(str typeName, Symbol sym);
