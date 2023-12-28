@@ -15,7 +15,7 @@ import {TabContextMenu} from "./TabContextMenu";
 import {ThemeProvider} from "@devtools-ds/themes";
 import {initializeIcons, ThemeProvider as FluentThemeProvider} from "@fluentui/react";
 import {darkTheme, lightTheme} from "./theme";
-import {useDataHook} from "model-react";
+import {Loader, useDataHook} from "model-react";
 
 initializeIcons();
 export const App: FC = () => {
@@ -34,21 +34,30 @@ export const App: FC = () => {
             <div style={{display: "flex", height: "100%"}}>
                 <Sidebar />
                 <div style={{flexGrow: 1, flexShrink: 1, minWidth: 0}}>
-                    <TabContextMenu state={state}>
-                        {onContext => (
-                            <DefaultLayout
-                                state={state.getLayoutState()}
-                                getContent={(id, hook) =>
-                                    state.getPanelUI(id, components, onContext, hook)
-                                }
-                            />
-                        )}
-                    </TabContextMenu>
+                    <UserLayout state={state} />
                 </div>
             </div>
         </ContextAndThemeProvider>
     );
 };
+
+const UserLayout: FC<{state: AppState}> = ({state}) => (
+    <TabContextMenu state={state}>
+        {onContext => (
+            <Loader>
+                {h => (
+                    <DefaultLayout
+                        key={state.specialTabs.settings.getSelectedProfileID(h)}
+                        state={state.getLayoutState()}
+                        getContent={(id, hook) =>
+                            state.getPanelUI(id, components, onContext, hook)
+                        }
+                    />
+                )}
+            </Loader>
+        )}
+    </TabContextMenu>
+);
 
 const components: IPanelComponents = {
     none: () => <div>Not found</div>,

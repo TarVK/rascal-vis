@@ -252,7 +252,7 @@ export class LayoutState {
      */
     public openTab(panelId: string, tab: string | ITabState, beforeTabId?: string): void {
         this.updateLayout(layout => {
-            const tabObj =
+            const tabObj: ITabState =
                 typeof tab == "string"
                     ? {id: tab, element: document.createElement("div")}
                     : tab;

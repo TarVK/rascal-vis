@@ -3,8 +3,8 @@ const build = path.join(process.cwd(), "build");
 const FilterWebpackOutput = require("filter-webpack-output");
 module.exports = env => ({
     entry: "./src/index.tsx",
-    devtool: env == "prod" ? undefined : "inline-source-map",
-    mode: env == "prod" ? "production" : "development",
+    devtool: env.prod ? undefined : "inline-source-map",
+    mode: env.prod ? "production" : "development",
     module: {
         rules: [
             {

@@ -264,6 +264,8 @@ export class SettingsState extends PanelState {
                 const specialTabs = this.appState.specialTabs;
                 specialTabs.open(specialTabs.info);
                 specialTabs.input.setInputSourceType("server");
+
+                this.saveProfile();
                 return;
             }
 
