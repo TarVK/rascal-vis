@@ -86,13 +86,13 @@ export const InfoPanel: FC<{panel: InfoPanelState; state: AppState}> = ({
             visualization selector located in the top right corner. This allows you to
             choose the desired visualization option.
             <H4>Inspector</H4>
-            The inspector is the fundamental visualization in the tool, similar to those
-            found in other environments like JavaScript tools in web browsers. It is
-            always available regardless of the data type and enables you to concentrate on
-            specific sections of the data. You can drag values into new panels to compare
-            them side by side, offering a convenient way to analyze different aspects.
-            Additionally, right-clicking provides access to further options through the
-            context menu.
+            The inspector is the base visualization in the tool, similar to those found in
+            other environments like JavaScript tools in web browsers. It is always
+            available regardless of the value's data type and enables you to concentrate
+            on specific sections of the data. You can drag values into new panels to
+            compare them side by side, offering a convenient way to analyze different
+            aspects. Additionally, right-clicking provides access to further options
+            through the context menu.
             <H4>Grammars</H4>
             Grammars can be visualized in a manner closely resembling their definition in
             Rascal. This visualization offers a concise view that maintains the visibility
@@ -172,7 +172,7 @@ export const InfoPanel: FC<{panel: InfoPanelState; state: AppState}> = ({
             </P>
             <H3>Value controls</H3>
             <P>
-                In the tool, there are special value constructors that hold significant
+                In the tool, there are dedicated value constructors that hold special
                 meaning and allow you to manipulate the layout and other application state
                 using these values. This functionality is particularly useful when making
                 changes directly from within Rascal, the source of the data.
@@ -183,7 +183,7 @@ export const InfoPanel: FC<{panel: InfoPanelState; state: AppState}> = ({
                 <Literal>VTab(myValue("some value"), name="something")</Literal>. This
                 will automatically open the corresponding value{" "}
                 <Literal>myValue("something")</Literal> in a tab with the specified name,
-                in this case, "something".
+                in this case "something".
             </P>
             <P>
                 By leveraging these special value constructors, you can efficiently

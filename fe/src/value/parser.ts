@@ -6,7 +6,7 @@ export const value: Parser<IValPlain> = P.lazy(() =>
     P.alt<IValPlain>(
         constr(value),
         node(value),
-        map,
+        map(value),
         set(value),
         list(value),
         tuple(value),
@@ -21,7 +21,7 @@ export const valuePattern: Parser<IValPlainPattern> = P.lazy(() =>
     P.sepBy1(
         P.alt<IValPlainPattern>(
             constrPattern(valuePattern),
-            map,
+            map(valuePattern),
             set(valuePattern),
             list(valuePattern),
             tuple(valuePattern),
@@ -39,19 +39,22 @@ export const valuePattern: Parser<IValPlainPattern> = P.lazy(() =>
 );
 
 const identifier = P.regex(/[\\\-a-zA-Z]+/).desc("identifier");
-const map = P.seq(
-    P.string("("),
-    WS,
-    P.sepBy(
-        P.seq(value, WS, P.string(":"), WS, value).map(([key, _1, _2, _3, value]) => ({
-            key,
-            value,
-        })),
-        P.seq(WS, P.string(","), WS)
-    ),
-    WS,
-    P.string(")")
-).map(([_1, _2, entries, _3, _4]) => ({type: "map" as const, children: entries}));
+const map = <T>(value: Parser<T>) =>
+    P.seq(
+        P.string("("),
+        WS,
+        P.sepBy(
+            P.seq(value, WS, P.string(":"), WS, value).map(
+                ([key, _1, _2, _3, value]) => ({
+                    key,
+                    value,
+                })
+            ),
+            P.seq(WS, P.string(","), WS)
+        ),
+        WS,
+        P.string(")")
+    ).map(([_1, _2, entries, _3, _4]) => ({type: "map" as const, children: entries}));
 
 const valueList = <T>(value: Parser<T>) => P.sepBy(value, P.seq(WS, P.string(","), WS));
 const namedValueList = <T, U = string>(
@@ -208,7 +211,7 @@ const regexPattern = P<IRegex>((input, i) => {
 
     if (!result.status) return result;
     try {
-        console.log(result);
+        // console.log(result);
         const regex = new RegExp((result.value as any)[1]);
         return P.makeSuccess(result.index, {type: "regex", regex});
     } catch (e) {
